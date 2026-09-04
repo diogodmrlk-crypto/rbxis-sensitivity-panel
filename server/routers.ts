@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { COOKIE_NAME } from "@shared/const";
 import { DURATION_UNITS, OPERATING_SYSTEMS, PERFORMANCE_LEVELS } from "../shared/rbxis";
 import {
   createHistory,
@@ -17,7 +16,6 @@ import {
   updateProductLicense,
 } from "./db";
 import { clearSessionCookie, getAdminAccessKey, normalizeAdminKey, setSessionCookie } from "./rbxis-auth";
-import { getSessionCookieOptions } from "./_core/cookies";
 import { publicProcedure, rbxisAdminProcedure, rbxisProcedure, router } from "./_core/trpc";
 
 const durationUnitSchema = z.enum(DURATION_UNITS);
@@ -90,12 +88,7 @@ export const appRouter = router({
         return { success: true as const, username: "Ferraodev", sessionToken };
       }),
     logout: publicProcedure.mutation(({ ctx }) => {
-      if (ctx.user) {
-        const cookieOptions = getSessionCookieOptions(ctx.req);
-        ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      } else {
-        clearSessionCookie(ctx.req, ctx.res);
-      }
+      clearSessionCookie(ctx.req, ctx.res);
       return { success: true as const };
     }),
   }),

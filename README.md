@@ -15,6 +15,7 @@ Aplicação web em **TypeScript + React + tRPC + Drizzle + MySQL/TiDB** para ger
 - Manifesto e service worker PWA.
 - Entry point serverless em `api/index.ts` e `vercel.json` para subir frontend e tRPC na Vercel.
 - O fluxo do produto não usa a API do Manus; as chamadas são internas em `/api/trpc`.
+- O redeploy automático acontece pela integração GitHub da Vercel: cada push na branch `main` gera um novo deployment.
 
 ## Variáveis de produção
 
@@ -47,6 +48,8 @@ pnpm build
 ```
 
 A migration idempotente está em `drizzle/0001_funny_sentinel.sql`. O banco do projeto já recebeu as tabelas `product_licenses` e `sensitivity_history`.
+
+Após cada push, confira o deployment associado ao commit na Vercel. O endpoint `https://seu-dominio.vercel.app/api/health` deve responder `{ "ok": true, "service": "rbxis" }` antes de testar o login.
 
 ## Fluxo de uso
 
