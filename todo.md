@@ -1,6 +1,6 @@
 # RBXIS Sensitivity Panel — acompanhamento
 
-- [x] Integrar CRUD server-side com MockAPI usando `MOCKAPI_KEYS_URL`.
+- [x] Integrar CRUD server-side com MockAPI usando endpoint mantido no módulo backend.
 - [x] Gerar keys no padrão `SENSI-tipo-aleatório`.
 - [x] Persistir username, uso, HWID, ativação, expiração e status.
 - [x] Bloquear login após expiração ou revogação.

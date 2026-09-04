@@ -8,7 +8,7 @@ Aplicação web em **TypeScript + React + tRPC + Drizzle + MySQL/TiDB** para ger
 - Login administrativo fixo: **`SENSIADMIN00`**. Ele abre uma área separada, invisível ao fluxo normal do usuário, com gestão de acessos.
 - Criação de licenças com plano, duração em dias/semanas/meses/anos e chave gerada automaticamente.
 - Ações administrativas para alterar plano, bloquear usuário, revogar, excluir da MockAPI e resetar vínculo de dispositivo.
-- Keys geradas com o padrão **`SENSI-tipo-aleatório`**, persistidas na coleção externa MockAPI e com expiração automática server-side.
+- Keys geradas com o padrão **`SENSI-tipo-aleatório`**, persistidas na coleção externa MockAPI e com expiração automática server-side. O endpoint fica apenas no módulo backend `server/mockapi.ts` e nunca é enviado ao bundle do navegador.
 - Vínculo server-side por HWID lógico persistido: após o primeiro login, a licença não aceita outro identificador de dispositivo.
 - Gerador determinístico por sistema operacional, aparelho e performance, com cópia dos valores.
 - Histórico e favoritos persistidos no banco.
@@ -24,11 +24,10 @@ Configure na Vercel:
 
 ```env
 DATABASE_URL=...
-MOCKAPI_KEYS_URL=https://seu-endpoint-mockapi/keys
 RBXIS_SESSION_SECRET=um-segredo-longo-e-aleatorio
 ```
 
-`MOCKAPI_KEYS_URL` é server-side e não aparece no bundle do frontend. O login fixo `SENSIADMIN00` está no código conforme solicitado. Se `RBXIS_SESSION_SECRET` não for definido, o app usa `JWT_SECRET` apenas como compatibilidade com o scaffold.
+O login fixo `SENSIADMIN00` está no código conforme solicitado. Se `RBXIS_SESSION_SECRET` não for definido, o app usa `JWT_SECRET` apenas como compatibilidade com o scaffold.
 
 Para evitar bloqueio no primeiro deploy, o app possui um fallback temporário de sessão. Em produção, configure `RBXIS_SESSION_SECRET` na Vercel antes de compartilhar o endereço público.
 

@@ -15,9 +15,8 @@ export type MockKey = {
 };
 
 function endpoint() {
-  const value = process.env.MOCKAPI_KEYS_URL?.trim();
-  if (!value) throw new Error("MOCKAPI_KEYS_URL não configurada na Vercel");
-  return value.replace(/\/$/, "");
+  // Endpoint público da coleção MockAPI, usado somente no backend server-side.
+  return "https://69b9908ce69653ffe6a81689.mockapi.io/api/v1/keys";
 }
 
 async function request<T>(path = "", init?: RequestInit): Promise<T> {
