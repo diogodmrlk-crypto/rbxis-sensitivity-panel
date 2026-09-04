@@ -1,8 +1,17 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { parse, serialize } from "cookie";
-import type { Request, Response } from "express";
 import { ENV } from "./_core/env";
 import type { RbxisRole, RbxisSession } from "../shared/rbxis";
+
+type RequestLike = {
+  headers: Record<string, string | string[] | undefined>;
+  protocol?: string;
+};
+
+type ResponseLike = {
+  setHeader(name: string, value: string): void;
+  clearCookie(name: string, options: Record<string, unknown>): void;
+};
 
 export const RBXIS_COOKIE_NAME = "rbxis_session";
 const SESSION_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 30;
@@ -55,23 +64,25 @@ export function readSessionToken(token: string | undefined): RbxisSession | null
   }
 }
 
-export function readSessionFromRequest(req: Request) {
+export function readSessionFromRequest(req: RequestLike) {
   const authorization = req.headers.authorization;
   if (typeof authorization === "string" && authorization.startsWith("Bearer ")) {
     const bearerSession = readSessionToken(authorization.slice("Bearer ".length).trim());
     if (bearerSession) return bearerSession;
   }
-  const cookies = parse(req.headers.cookie ?? "");
+  const rawCookie = req.headers.cookie;
+  const cookieHeader = Array.isArray(rawCookie) ? rawCookie[0] ?? "" : rawCookie ?? "";
+  const cookies = parse(cookieHeader);
   return readSessionToken(cookies[RBXIS_COOKIE_NAME]);
 }
 
-function isSecureRequest(req: Request) {
+function isSecureRequest(req: RequestLike) {
   if (ENV.isProduction || req.protocol === "https") return true;
   const forwarded = req.headers["x-forwarded-proto"];
   return typeof forwarded === "string" && forwarded.split(",")[0]?.trim() === "https";
 }
 
-export function setSessionCookie(req: Request, res: Response, session: Omit<RbxisSession, "expiresAt">) {
+export function setSessionCookie(req: RequestLike, res: ResponseLike, session: Omit<RbxisSession, "expiresAt">) {
   const token = createSessionToken(session);
   res.setHeader("Set-Cookie", serialize(RBXIS_COOKIE_NAME, token, {
     httpOnly: true,
@@ -83,7 +94,7 @@ export function setSessionCookie(req: Request, res: Response, session: Omit<Rbxi
   return token;
 }
 
-export function clearSessionCookie(req: Request, res: Response) {
+export function clearSessionCookie(req: RequestLike, res: ResponseLike) {
   res.clearCookie(RBXIS_COOKIE_NAME, {
     httpOnly: true,
     sameSite: "lax",
