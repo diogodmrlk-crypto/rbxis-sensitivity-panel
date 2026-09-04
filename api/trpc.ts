@@ -4,6 +4,7 @@ type MockKey = {
   id?: string; key: string; username?: string; used?: boolean; device?: string; expire?: number;
   type?: string; createdAt?: number; activatedAt?: number; expiresAt?: number;
   status?: "active" | "revoked" | "blocked";
+  history?: Array<Record<string, any>>; onlineAt?: number;
 };
 
 const MOCK_API = "https://69b9908ce69653ffe6a81689.mockapi.io/api/v1/keys";
@@ -75,6 +76,12 @@ function bodyInput(input: any) {
 }
 function durationDays(value: number, unit: string) { return unit === "days" ? value : unit === "weeks" ? value * 7 : unit === "months" ? value * 30 : value * 365; }
 function addDuration(start: Date, value: number, unit: string) { const d = new Date(start); if (unit === "days") d.setDate(d.getDate() + value); else if (unit === "weeks") d.setDate(d.getDate() + value * 7); else if (unit === "months") d.setMonth(d.getMonth() + value); else d.setFullYear(d.getFullYear() + value); return Math.floor(d.getTime() / 1000); }
+function buildSensitivity(seed: string) {
+  const digest = createHash("sha256").update(seed).digest();
+  const n = (index: number) => digest[index] ?? 0;
+  return { general: 88 + (n(0) % 13), redDot: 82 + (n(1) % 17), scope2x: 76 + (n(2) % 20), scope4x: 68 + (n(3) % 24), awm: 54 + (n(4) % 30) };
+}
+function currentUserKey(session: any, raw: MockKey[]) { return raw.find((item) => item.key === session?.accessKey); }
 
 function respond(res: any, status: number, value: unknown) {
   res.statusCode = status;
@@ -113,7 +120,7 @@ export default async function trpc(req: any, res: any) {
       if (key.expiresAt && key.expiresAt <= Math.floor(Date.now() / 1000)) return fail(res, 403, "Esta key expirou");
       if (key.device && key.device !== deviceId) return fail(res, 403, "Esta key já está vinculada a outro dispositivo");
       const now = Math.floor(Date.now() / 1000);
-      const updated = key.device ? key : normalize(await mockRequest<MockKey>(`/${encodeURIComponent(key.id ?? key.key)}`, { method: "PUT", body: JSON.stringify({ device: deviceId, used: true, activatedAt: key.activatedAt || now }) }));
+      const updated = normalize(await mockRequest<MockKey>(`/${encodeURIComponent(key.id ?? key.key)}`, { method: "PUT", body: JSON.stringify({ device: deviceId, used: true, activatedAt: key.activatedAt || now, onlineAt: now }) }));
       const sessionToken = tokenForUser(updated);
       res.setHeader("Set-Cookie", `rbxis_session=${sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`);
       return ok(res, { success: true, username: updated.key, expiresAt: updated.expiresAt ? new Date(updated.expiresAt * 1000) : null, sessionToken });
@@ -127,6 +134,23 @@ export default async function trpc(req: any, res: any) {
       return ok(res, { role: "user", username: key.key, name: key.key, email: null, planId: key.type ?? "daily", expiresAt: key.expiresAt ? new Date(key.expiresAt * 1000) : new Date("2099-12-31T23:59:59Z"), deviceId: key.device || null });
     }
     if (path === "auth.logout") { res.setHeader("Set-Cookie", "rbxis_session=; Path=/; HttpOnly; Max-Age=0"); return ok(res, { success: true }); }
+    if (path === "generator.generate" || path === "generator.history" || path === "generator.favorites" || path === "generator.toggleFavorite") {
+      const session = readSession(req);
+      if (!session || session.role !== "user") return fail(res, 403, "O gerador é exclusivo para usuários");
+      const userKey = currentUserKey(session, (await mockRequest<MockKey[]>()).map(normalize));
+      if (!userKey) return fail(res, 403, "A licença não está ativa");
+      const history = Array.isArray(userKey.history) ? userKey.history : [];
+      if (path === "generator.history" || path === "generator.favorites") return ok(res, history.filter((item) => path === "generator.history" || item.favorite));
+      if (path === "generator.toggleFavorite") {
+        const id = Number(data.historyId); const next = history.map((item) => item.id === id ? { ...item, favorite: !item.favorite } : item);
+        await mockRequest<MockKey>(`/${encodeURIComponent(userKey.id ?? userKey.key)}`, { method: "PUT", body: JSON.stringify({ history: next }) });
+        return ok(res, { success: true });
+      }
+      const values = buildSensitivity(`${userKey.key}:${data.operatingSystem}:${data.device}:${data.performance}`);
+      const record = { id: Date.now(), operatingSystem: data.operatingSystem, device: data.device, performance: data.performance, ...values, favorite: false, createdAt: new Date().toISOString() };
+      await mockRequest<MockKey>(`/${encodeURIComponent(userKey.id ?? userKey.key)}`, { method: "PUT", body: JSON.stringify({ history: [record, ...history].slice(0, 100), onlineAt: Math.floor(Date.now() / 1000) }) });
+      return ok(res, { values, historyId: record.id });
+    }
     if (!readAdminSession(req)) return fail(res, 401, "Sessão administrativa inválida");
 
     const raw = (await mockRequest<MockKey[]>()).map(normalize);

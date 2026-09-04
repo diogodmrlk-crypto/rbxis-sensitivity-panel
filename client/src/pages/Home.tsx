@@ -144,6 +144,7 @@ function LoginScreen() {
         </div>
       </section>
       <footer className="login-footer"><span>RBXIS LAB / 2026</span><span>Feito para quem joga sério.</span><span className="footer-red">●</span></footer>
+      <InstallNotice />
     </main>
   );
 }
@@ -158,7 +159,7 @@ function InstallNotice() {
     return () => { window.clearTimeout(timer); window.removeEventListener("beforeinstallprompt", capture); };
   }, []);
   if (!visible) return null;
-  return <div className="install-notice"><div className="notice-pulse"><MonitorSmartphone size={18} /></div><div><b>Adicione o RBXIS à sua tela inicial</b><span>Tenha acesso rápido ao seu painel.</span></div><button onClick={async () => { if (installEvent) { await installEvent.prompt(); setVisible(false); } else toast.info("No celular, use o menu do navegador e escolha 'Adicionar à tela inicial'."); }} aria-label="Instalar RBXIS"><ChevronRight size={18} /></button><button className="notice-close" onClick={() => setVisible(false)} aria-label="Fechar aviso"><X size={15} /></button></div>;
+  return <div className="install-notice"><div className="notice-pulse"><MonitorSmartphone size={18} /></div><div><b>Coloque o RBXIS na tela inicial</b><span>Abra como um app no seu telefone.</span></div><button onClick={async () => { if (installEvent) { await installEvent.prompt(); setVisible(false); } else if (navigator.share) { await navigator.share({ title: "RBXIS Sensitivity Lab", text: "Abrir o RBXIS", url: window.location.href }); setVisible(false); } else toast.info("Toque no menu Compartilhar do navegador e escolha 'Adicionar à tela inicial'."); }} aria-label="Adicionar à tela inicial"><ChevronRight size={18} /></button><button className="notice-close" onClick={() => setVisible(false)} aria-label="Fechar aviso"><X size={15} /></button></div>;
 }
 
 function UserShell({ children, view, onChangeView, session, onLogout }: { children: React.ReactNode; view: View; onChangeView: (view: View) => void; session: { username: string; planId: string; expiresAt: Date | string; deviceId?: string | null }; onLogout: () => void }) {

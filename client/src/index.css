@@ -216,3 +216,20 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 @media (max-width: 390px) { .secure-chip { display: none; }.login-copy h1 { font-size: 47px; }.hero-panel { padding: 20px; }.values-grid { gap: 6px; }.value-item { grid-template-columns: auto 1fr; }.value-item strong { grid-column: 2; grid-row: 1; }.value-item button { grid-column: 2; grid-row: 2; justify-self: start; }.value-item small { display: none; }.license-pill { display: none; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+
+/* Login refinement: use the available viewport instead of leaving the card visually isolated. */
+.login-content { width: min(1240px, calc(100% - 56px)); grid-template-columns: minmax(0, 1fr) minmax(480px, 540px); gap: clamp(48px, 7vw, 112px); padding-top: clamp(48px, 8vh, 92px); padding-bottom: clamp(42px, 7vh, 82px); }
+.login-card-wrap { width: 100%; }
+.login-card { min-height: 390px; padding: 34px 36px 24px; }
+.login-copy { max-width: 620px; }
+.login-copy p { max-width: 520px; font-size: 16px; }
+@media (max-width: 1000px) {
+  .login-content { grid-template-columns: minmax(0, 1fr) 440px; gap: 34px; width: min(940px, calc(100% - 42px)); }
+  .login-card { padding: 30px 28px 22px; }
+}
+@media (max-width: 760px) {
+  .login-content { width: calc(100% - 28px); padding-top: 42px; padding-bottom: 32px; }
+  .login-copy { margin-bottom: 28px; }
+  .login-copy p { font-size: 13px; }
+  .login-card { min-height: 0; padding: 27px 22px 20px; }
+}
