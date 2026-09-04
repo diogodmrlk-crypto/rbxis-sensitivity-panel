@@ -101,12 +101,13 @@ function LoadingScreen() {
 function LoginScreen() {
   const [adminMode, setAdminMode] = useState(false);
   const [accessKey, setAccessKey] = useState("");
+  useEffect(() => { navigator.serviceWorker?.register("/sw.js").catch(() => undefined); }, []);
   const login = trpc.auth.login.useMutation({
-    onSuccess: data => { sessionStorage.setItem("rbxis_session_token", data.sessionToken); window.location.reload(); },
+    onSuccess: data => { localStorage.setItem("rbxis_session_token", data.sessionToken); window.location.reload(); },
     onError: error => toast.error(error.message),
   });
   const adminLogin = trpc.auth.adminLogin.useMutation({
-    onSuccess: data => { sessionStorage.setItem("rbxis_session_token", data.sessionToken); window.location.reload(); },
+    onSuccess: data => { localStorage.setItem("rbxis_session_token", data.sessionToken); window.location.reload(); },
     onError: error => toast.error(error.message),
   });
 
@@ -266,7 +267,7 @@ function AdminApp({ onLogout }: { onLogout: () => void }) {
 
 export default function Home() {
   const me = trpc.auth.me.useQuery(undefined, { retry: false });
-  const logout = trpc.auth.logout.useMutation({ onSuccess: () => { sessionStorage.removeItem("rbxis_session_token"); me.refetch(); window.location.reload(); } });
+  const logout = trpc.auth.logout.useMutation({ onSuccess: () => { localStorage.removeItem("rbxis_session_token"); me.refetch(); window.location.reload(); } });
   const session = me.data;
   const handleLogout = () => logout.mutate();
   if (me.isLoading) return <LoadingScreen />;

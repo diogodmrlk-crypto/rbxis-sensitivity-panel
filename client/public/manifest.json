@@ -9,7 +9,7 @@
   "lang": "pt-BR",
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='48' fill='%23d92737'/%3E%3Ccircle cx='96' cy='96' r='52' fill='none' stroke='white' stroke-width='12'/%3E%3Cpath d='M96 22v40M96 130v40M22 96h40M130 96h40' stroke='white' stroke-width='12'/%3E%3Ccircle cx='96' cy='96' r='14' fill='white'/%3E%3C/svg%3E",
+      "src": "/icon.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any maskable"

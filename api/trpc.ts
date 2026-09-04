@@ -118,6 +118,7 @@ export default async function trpc(req: any, res: any) {
       if (key.status === "blocked") return fail(res, 403, "Esta key foi bloqueada pelo administrador");
       if (key.status === "revoked") return fail(res, 403, "Esta key foi revogada");
       if (key.expiresAt && key.expiresAt <= Math.floor(Date.now() / 1000)) return fail(res, 403, "Esta key expirou");
+      if (key.used) return fail(res, 403, "Esta key já foi utilizada e não pode ser ativada novamente");
       if (key.device && key.device !== deviceId) return fail(res, 403, "Esta key já está vinculada a outro dispositivo");
       const now = Math.floor(Date.now() / 1000);
       const updated = normalize(await mockRequest<MockKey>(`/${encodeURIComponent(key.id ?? key.key)}`, { method: "PUT", body: JSON.stringify({ device: deviceId, used: true, activatedAt: key.activatedAt || now, onlineAt: now }) }));

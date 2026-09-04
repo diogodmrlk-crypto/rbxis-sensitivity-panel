@@ -13,9 +13,13 @@ const trpcClient = trpc.createClient({
     httpLink({
       url: "/api/trpc",
       transformer: superjson,
-      headers() {
-        try {
-          const token = sessionStorage.getItem("rbxis_session_token");
+        headers() {
+          try {
+          let token = localStorage.getItem("rbxis_session_token");
+          if (!token) {
+            token = sessionStorage.getItem("rbxis_session_token");
+            if (token) localStorage.setItem("rbxis_session_token", token);
+          }
           if (token) return { Authorization: `Bearer ${token}` };
         } catch {
           // sessionStorage unavailable
