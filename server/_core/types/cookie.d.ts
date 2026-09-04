@@ -3,4 +3,9 @@ declare module "cookie" {
     str: string,
     options?: Record<string, unknown>
   ): Record<string, string>;
+  export function serialize(
+    name: string,
+    value: string,
+    options?: Record<string, unknown>
+  ): string;
 }
