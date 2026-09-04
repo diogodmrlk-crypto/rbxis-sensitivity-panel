@@ -6,7 +6,7 @@
     "api/health.ts": {
       "maxDuration": 10
     },
-    "api/trpc.ts": {
+    "api/trpc/[...path].ts": {
       "maxDuration": 30
     }
   }
