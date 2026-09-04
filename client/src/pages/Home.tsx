@@ -100,7 +100,6 @@ function LoadingScreen() {
 
 function LoginScreen() {
   const [adminMode, setAdminMode] = useState(false);
-  const [username, setUsername] = useState("");
   const [accessKey, setAccessKey] = useState("");
   const login = trpc.auth.login.useMutation({
     onSuccess: data => { sessionStorage.setItem("rbxis_session_token", data.sessionToken); window.location.reload(); },
@@ -114,7 +113,7 @@ function LoginScreen() {
   function submit(event: React.FormEvent) {
     event.preventDefault();
     if (adminMode) adminLogin.mutate({ adminKey: accessKey });
-    else login.mutate({ username, accessKey, deviceId: getDeviceId() });
+    else login.mutate({ accessKey, deviceId: getDeviceId() });
   }
 
   const pending = login.isPending || adminLogin.isPending;
@@ -136,7 +135,6 @@ function LoginScreen() {
             <div className="login-card-heading"><div className="card-icon"><LockKeyhole size={21} /></div><div><span className="mini-label">{adminMode ? "ÁREA RESTRITA" : "ACESSO PROTEGIDO"}</span><h2>{adminMode ? "Painel administrativo" : "Ative sua licença"}</h2></div></div>
             <p className="card-description">{adminMode ? "Acesso total ao gerenciamento de usuários e chaves." : "Insira seus dados para desbloquear o gerador."}</p>
             <form onSubmit={submit} className="login-form">
-              {!adminMode && <label><span>Nome de usuário</span><div className="input-shell"><UserRound size={17} /><input value={username} onChange={event => setUsername(event.target.value)} placeholder="seu_usuario" autoComplete="username" required /></div></label>}
               <label><span>{adminMode ? "Chave de administrador" : "Chave de acesso"}</span><div className="input-shell"><KeyRound size={17} /><input value={accessKey} onChange={event => setAccessKey(event.target.value)} placeholder={adminMode ? "SENSIADMIN00" : "SENSI-weekly-XXXXXXXXXX"} type="password" autoComplete="current-password" autoCapitalize="none" autoCorrect="off" spellCheck={false} required /><button type="button" className="input-action" onClick={() => setAccessKey("")} aria-label="Limpar chave"><X size={15} /></button></div></label>
               <button className="primary-button login-button" disabled={pending}>{pending ? <><RefreshCw size={17} className="spin" /> VALIDANDO...</> : <>{adminMode ? "ENTRAR NO ADMIN" : "ENTRAR NO PAINEL"}<ChevronRight size={18} /></>}</button>
             </form>
@@ -245,7 +243,7 @@ function AdminLicenses() {
   const [formOpen, setFormOpen] = useState(false);
   const [createdKey, setCreatedKey] = useState("");
   const [username, setUsername] = useState("");
-  const [planId, setPlanId] = useState("month");
+  const [planId, setPlanId] = useState("weekly");
   const [durationValue, setDurationValue] = useState(30);
   const [durationUnit, setDurationUnit] = useState<(typeof DURATION_UNITS)[number]>("days");
   const [query, setQuery] = useState("");

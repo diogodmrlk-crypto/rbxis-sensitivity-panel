@@ -1,9 +1,7 @@
 export const PLAN_CATALOG = [
-  { id: "trial", name: "Teste", description: "Acesso rápido para demonstração", accent: "gray" },
-  { id: "week", name: "7 dias", description: "Plano semanal", accent: "blue" },
-  { id: "month", name: "30 dias", description: "Plano mensal", accent: "red" },
-  { id: "quarter", name: "90 dias", description: "Plano trimestral", accent: "purple" },
-  { id: "year", name: "1 ano", description: "Acesso anual completo", accent: "gold" },
+  { id: "daily", name: "1 dia", description: "Acesso diário", accent: "gray" },
+  { id: "weekly", name: "1 semana", description: "Acesso semanal", accent: "blue" },
+  { id: "perm", name: "Permanente", description: "Acesso sem expiração", accent: "gold" },
 ] as const;
 
 export const OPERATING_SYSTEMS = ["android", "ios"] as const;

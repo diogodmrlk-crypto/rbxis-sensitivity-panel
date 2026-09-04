@@ -17,7 +17,13 @@ function tokenForAdmin() {
   return `${payload}.${sign(payload)}`;
 }
 
-function readAdminSession(req: any) {
+function tokenForUser(key: MockKey) {
+  const expiresAt = key.expiresAt ? key.expiresAt * 1000 : Date.now() + 31_536_000_000;
+  const payload = encode(JSON.stringify({ role: "user", accessKey: key.key, username: key.key, expiresAt }));
+  return `${payload}.${sign(payload)}`;
+}
+
+function readSession(req: any) {
   const authorization = req.headers?.authorization;
   const cookie = req.headers?.cookie ?? "";
   const token = typeof authorization === "string" && authorization.startsWith("Bearer ")
@@ -31,8 +37,13 @@ function readAdminSession(req: any) {
   if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
   try {
     const session = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
-    return session.role === "admin" && session.expiresAt > Date.now() ? session : null;
+    return (session.role === "admin" || session.role === "user") && session.expiresAt > Date.now() ? session : null;
   } catch { return null; }
+}
+
+function readAdminSession(req: any) {
+  const session = readSession(req);
+  return session?.role === "admin" ? session : null;
 }
 
 async function mockRequest<T>(path = "", init?: RequestInit): Promise<T> {
@@ -90,9 +101,30 @@ export default async function trpc(req: any, res: any) {
       res.setHeader("Set-Cookie", `rbxis_session=${sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`);
       return ok(res, { success: true, username: ADMIN_KEY, sessionToken });
     }
+    if (path === "auth.login") {
+      const accessKey = String(data.accessKey ?? "").trim();
+      const deviceId = String(data.deviceId ?? "").trim().slice(0, 160);
+      if (!accessKey || deviceId.length < 8) return fail(res, 400, "Informe uma key válida e permita a identificação do dispositivo");
+      const keys = (await mockRequest<MockKey[]>()).map(normalize);
+      const key = keys.find((item) => item.key === accessKey);
+      if (!key) return fail(res, 401, "Key inválida");
+      if (key.status === "blocked") return fail(res, 403, "Esta key foi bloqueada pelo administrador");
+      if (key.status === "revoked") return fail(res, 403, "Esta key foi revogada");
+      if (key.expiresAt && key.expiresAt <= Math.floor(Date.now() / 1000)) return fail(res, 403, "Esta key expirou");
+      if (key.device && key.device !== deviceId) return fail(res, 403, "Esta key já está vinculada a outro dispositivo");
+      const now = Math.floor(Date.now() / 1000);
+      const updated = key.device ? key : normalize(await mockRequest<MockKey>(`/${encodeURIComponent(key.id ?? key.key)}`, { method: "PUT", body: JSON.stringify({ device: deviceId, used: true, activatedAt: key.activatedAt || now }) }));
+      const sessionToken = tokenForUser(updated);
+      res.setHeader("Set-Cookie", `rbxis_session=${sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`);
+      return ok(res, { success: true, username: updated.key, expiresAt: updated.expiresAt ? new Date(updated.expiresAt * 1000) : null, sessionToken });
+    }
     if (path === "auth.me") {
-      const session = readAdminSession(req);
-      return ok(res, session ? { role: "admin", username: ADMIN_KEY, name: ADMIN_KEY, email: null } : null);
+      const session = readSession(req);
+      if (!session) return ok(res, null);
+      if (session.role === "admin") return ok(res, { role: "admin", username: ADMIN_KEY, name: ADMIN_KEY, email: null });
+      const key = (await mockRequest<MockKey[]>()).map(normalize).find((item) => item.key === session.accessKey);
+      if (!key || key.status === "revoked" || key.status === "blocked" || (key.expiresAt && key.expiresAt <= Math.floor(Date.now() / 1000))) return ok(res, null);
+      return ok(res, { role: "user", username: key.key, name: key.key, email: null, planId: key.type ?? "daily", expiresAt: key.expiresAt ? new Date(key.expiresAt * 1000) : new Date("2099-12-31T23:59:59Z"), deviceId: key.device || null });
     }
     if (path === "auth.logout") { res.setHeader("Set-Cookie", "rbxis_session=; Path=/; HttpOnly; Max-Age=0"); return ok(res, { success: true }); }
     if (!readAdminSession(req)) return fail(res, 401, "Sessão administrativa inválida");
@@ -106,8 +138,9 @@ export default async function trpc(req: any, res: any) {
     const match = (id: number) => raw.find((value) => numericId(value) === id);
     if (path === "admin.createLicense") {
       const days = durationDays(Number(data.durationValue), String(data.durationUnit)); const now = Math.floor(Date.now() / 1000);
-      const type = data.planId === "week" ? "weekly" : data.planId === "month" ? "monthly" : data.planId === "year" ? "yearly" : data.planId === "quarter" ? "quarterly" : String(data.durationUnit);
-      const created = await mockRequest<MockKey>("", { method: "POST", body: JSON.stringify({ key: `SENSI-${type}-${randomBytes(6).toString("hex").toUpperCase()}`, username: String(data.username).trim(), used: false, device: "", expire: days, type, createdAt: now, activatedAt: 0, expiresAt: now + days * 86400, status: "active" }) });
+      const type = data.planId === "weekly" ? "weekly" : data.planId === "perm" ? "perm" : "daily";
+      const permanent = type === "perm";
+      const created = await mockRequest<MockKey>("", { method: "POST", body: JSON.stringify({ key: `SENSI-${type}-${randomBytes(6).toString("hex").toUpperCase()}`, used: false, device: "", expire: permanent ? 0 : type === "weekly" ? 7 : 1, type, createdAt: now, activatedAt: 0, expiresAt: permanent ? 0 : now + (type === "weekly" ? 7 : 1) * 86400, status: "active" }) });
       return ok(res, asLicense(created));
     }
     const id = Number(data.id); const current = match(id);

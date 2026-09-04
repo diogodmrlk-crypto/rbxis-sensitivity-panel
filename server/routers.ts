@@ -67,9 +67,9 @@ export const appRouter = router({
       };
     }),
     login: publicProcedure
-      .input(z.object({ username: z.string().trim().min(2).max(60), accessKey: z.string().trim().min(8).max(80), deviceId: z.string().trim().min(8).max(160) }))
+      .input(z.object({ accessKey: z.string().trim().min(8).max(80), deviceId: z.string().trim().min(8).max(160) }))
       .mutation(async ({ ctx, input }) => {
-        const row = await getLicenseByCredentials(input.username, input.accessKey);
+        const row = await getLicenseByCredentials(input.accessKey, input.accessKey);
         if (!row) throw new TRPCError({ code: "UNAUTHORIZED", message: "Usuário ou chave inválidos" });
         if (row.license.status !== "active") throw new TRPCError({ code: "FORBIDDEN", message: row.license.status === "blocked" ? "Este acesso foi bloqueado pelo administrador" : "Esta chave foi revogada" });
         if (row.license.expiresAt.getTime() <= Date.now()) throw new TRPCError({ code: "FORBIDDEN", message: "Esta licença expirou" });
