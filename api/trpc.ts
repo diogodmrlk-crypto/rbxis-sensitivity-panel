@@ -1,4 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { appRouter } from "../server/routers";
+import { createContext } from "../server/_core/context";
 
 const secret = () => process.env.RBXIS_SESSION_SECRET || "rbxis-session-secret-change-this-in-vercel";
 const adminKey = () => "SENSIADMIN00";
@@ -51,8 +53,6 @@ export default async function trpc(req: any, res: any) {
     if (path === "auth.me") {
       return respond(res, 200, { result: { data: { json: readAdminSession(req) } } });
     }
-    const { appRouter } = await import("../server/routers");
-    const { createContext } = await import("../server/_core/context");
     const context = await createContext({ req, res } as any);
     let target: any = appRouter.createCaller(context);
     for (const segment of path.split(".").filter(Boolean)) target = target[segment];
