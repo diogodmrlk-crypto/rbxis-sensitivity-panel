@@ -60,13 +60,20 @@ function bodyInput(input: any) { return input?.json ?? input ?? {}; }
 function durationDays(value: number, unit: string) { return unit === "days" ? value : unit === "weeks" ? value * 7 : unit === "months" ? value * 30 : value * 365; }
 function addDuration(start: Date, value: number, unit: string) { const d = new Date(start); if (unit === "days") d.setDate(d.getDate() + value); else if (unit === "weeks") d.setDate(d.getDate() + value * 7); else if (unit === "months") d.setMonth(d.getMonth() + value); else d.setFullYear(d.getFullYear() + value); return Math.floor(d.getTime() / 1000); }
 
-function respond(res: any, status: number, value: unknown) { res.statusCode = status; res.setHeader("content-type", "application/json; charset=utf-8"); res.end(JSON.stringify(value)); }
+function respond(res: any, status: number, value: unknown) {
+  res.statusCode = status;
+  res.setHeader("content-type", "application/json; charset=utf-8");
+  // httpBatchLink sends even a single mutation as a batch request. tRPC expects
+  // an array response whenever ?batch=1 is present.
+  res.end(JSON.stringify(res.__trpcBatch ? [value] : value));
+}
 function ok(res: any, value: unknown) { return respond(res, 200, { result: { data: { json: value } } }); }
 function fail(res: any, status: number, message: string) { return respond(res, status, { error: { json: { message } } }); }
 
 export default async function trpc(req: any, res: any) {
   try {
     const url = new URL(req.url ?? "/api/trpc", `https://${req.headers?.host ?? "localhost"}`);
+    res.__trpcBatch = url.searchParams.get("batch") === "1";
     const path = decodeURIComponent(url.searchParams.get("path") ?? url.pathname.replace(/^\/api\/trpc\/?/, ""));
     let input: any = req.body ?? {};
     if (typeof input === "string") input = JSON.parse(input);
