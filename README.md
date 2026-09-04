@@ -13,7 +13,7 @@ Aplicação web em **TypeScript + React + tRPC + Drizzle + MySQL/TiDB** para ger
 - Histórico e favoritos persistidos no banco.
 - Aviso central de instalação que desaparece após 4 segundos e usa o prompt nativo `beforeinstallprompt` quando disponível.
 - Manifesto e service worker PWA.
-- Entry point serverless em `api/index.ts` e `vercel.json` para subir frontend e tRPC na Vercel.
+- Entry point serverless explícito em `api/index.ts` e `vercel.json` para subir frontend e tRPC na Vercel.
 - O fluxo do produto não usa a API do Manus; as chamadas são internas em `/api/trpc`.
 - O redeploy automático acontece pela integração GitHub da Vercel: cada push na branch `main` gera um novo deployment.
 
