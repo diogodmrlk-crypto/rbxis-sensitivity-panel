@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { appRouter } from "../server/routers";
-import { createContext } from "../server/_core/context";
+import { appRouter } from "../server/routers.ts";
+import { createContext } from "../server/_core/context.ts";
 
 const secret = () => process.env.RBXIS_SESSION_SECRET || "rbxis-session-secret-change-this-in-vercel";
 const adminKey = () => "SENSIADMIN00";
