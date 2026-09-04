@@ -1,23 +1,23 @@
 import "dotenv/config";
-import express from "express";
-import { createExpressMiddleware } from "@trpc/server/adapters/express";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import { nodeHTTPRequestHandler } from "@trpc/server/adapters/node-http";
 import { appRouter } from "../server/routers";
 import { createContext } from "../server/_core/context";
 
-const app = express();
-app.use(express.json({ limit: "2mb" }));
-app.use(express.urlencoded({ extended: true, limit: "2mb" }));
-app.get(["/api/health", "/health"], (_req: any, res: any) => {
-  res.status(200).json({ ok: true, service: "rbxis" });
-});
-app.use(
-  ["/api/trpc", "/trpc"],
-  createExpressMiddleware({
-    router: appRouter,
-    createContext,
-  }),
-);
+export default async function handler(req: IncomingMessage, res: ServerResponse) {
+  if (req.url?.split("?")[0] === "/api/health") {
+    res.statusCode = 200;
+    res.setHeader("content-type", "application/json");
+    res.end(JSON.stringify({ ok: true, service: "rbxis" }));
+    return;
+  }
 
-export default function handler(req: any, res: any) {
-  return app(req, res);
+  await nodeHTTPRequestHandler({
+    req,
+    res,
+    path: "api/trpc",
+    router: appRouter,
+    createContext: ({ req: contextReq, res: contextRes }) =>
+      createContext({ req: contextReq as any, res: contextRes as any }),
+  });
 }

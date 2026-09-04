@@ -12,7 +12,7 @@ export type TrpcContext = {
   rbxisSession?: RbxisSession | null;
 };
 
-export async function createContext(opts: CreateExpressContextOptions): Promise<TrpcContext> {
+export async function createContext(opts: CreateExpressContextOptions | { req: any; res: any }): Promise<TrpcContext> {
   const tokenSession = readSessionFromRequest(opts.req);
   let rbxisSession: RbxisSession | null = null;
 
