@@ -51,7 +51,13 @@ export default async function trpc(req: any, res: any) {
     if (path === "auth.me") {
       return respond(res, 200, { result: { data: { json: readAdminSession(req) } } });
     }
-    return respond(res, 501, { error: { json: { message: "Endpoint disponível após autenticação" } } });
+    const { appRouter } = await import("../server/routers");
+    const { createContext } = await import("../server/_core/context");
+    const context = await createContext({ req, res } as any);
+    let target: any = appRouter.createCaller(context);
+    for (const segment of path.split(".").filter(Boolean)) target = target[segment];
+    if (typeof target !== "function") return respond(res, 404, { error: { json: { message: `Procedure not found: ${path}` } } });
+    return respond(res, 200, { result: { data: { json: await target(payload) } } });
   } catch (error: any) {
     return respond(res, 500, { error: { json: { message: error?.message ?? "Internal server error" } } });
   }
