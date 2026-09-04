@@ -103,11 +103,11 @@ function LoginScreen() {
   const [username, setUsername] = useState("");
   const [accessKey, setAccessKey] = useState("");
   const login = trpc.auth.login.useMutation({
-    onSuccess: () => window.location.reload(),
+    onSuccess: data => { sessionStorage.setItem("rbxis_session_token", data.sessionToken); window.location.reload(); },
     onError: error => toast.error(error.message),
   });
   const adminLogin = trpc.auth.adminLogin.useMutation({
-    onSuccess: () => window.location.reload(),
+    onSuccess: data => { sessionStorage.setItem("rbxis_session_token", data.sessionToken); window.location.reload(); },
     onError: error => toast.error(error.message),
   });
 
@@ -264,7 +264,7 @@ function AdminApp({ onLogout }: { onLogout: () => void }) {
 
 export default function Home() {
   const me = trpc.auth.me.useQuery(undefined, { retry: false });
-  const logout = trpc.auth.logout.useMutation({ onSuccess: () => { me.refetch(); window.location.reload(); } });
+  const logout = trpc.auth.logout.useMutation({ onSuccess: () => { sessionStorage.removeItem("rbxis_session_token"); me.refetch(); window.location.reload(); } });
   const session = me.data;
   const handleLogout = () => logout.mutate();
   if (me.isLoading) return <LoadingScreen />;

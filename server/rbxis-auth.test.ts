@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createSessionToken, getAdminAccessKey, readSessionToken } from "./rbxis-auth";
+import { createSessionToken, getAdminAccessKey, readSessionFromRequest, readSessionToken } from "./rbxis-auth";
 
 describe("RBXIS session auth", () => {
   it("round-trips a user session with its claims", () => {
@@ -24,5 +24,11 @@ describe("RBXIS session auth", () => {
 
   it("keeps the requested admin access key as the local default", () => {
     expect(getAdminAccessKey()).toBe("Ferraodev");
+  });
+
+  it("accepts the signed session through an Authorization bearer header", () => {
+    const token = createSessionToken({ role: "admin", username: "Ferraodev" });
+    const session = readSessionFromRequest({ headers: { authorization: `Bearer ${token}` } } as never);
+    expect(session?.role).toBe("admin");
   });
 });

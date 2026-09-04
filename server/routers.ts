@@ -79,15 +79,15 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Esta licença já está vinculada a outro dispositivo" });
         }
         await markLicenseLoggedIn(row.license.id, deviceId);
-        setSessionCookie(ctx.req, ctx.res, { role: "user", userId: row.user.id, licenseId: row.license.id, username: row.license.username });
-        return { success: true as const, username: row.license.username, expiresAt: row.license.expiresAt };
+        const sessionToken = setSessionCookie(ctx.req, ctx.res, { role: "user", userId: row.user.id, licenseId: row.license.id, username: row.license.username });
+        return { success: true as const, username: row.license.username, expiresAt: row.license.expiresAt, sessionToken };
       }),
     adminLogin: publicProcedure
       .input(z.object({ adminKey: z.string().min(1) }))
       .mutation(({ ctx, input }) => {
         if (normalizeAdminKey(input.adminKey) !== normalizeAdminKey(getAdminAccessKey())) throw new TRPCError({ code: "UNAUTHORIZED", message: "Chave de administrador inválida" });
-        setSessionCookie(ctx.req, ctx.res, { role: "admin", username: "Ferraodev" });
-        return { success: true as const, username: "Ferraodev" };
+        const sessionToken = setSessionCookie(ctx.req, ctx.res, { role: "admin", username: "Ferraodev" });
+        return { success: true as const, username: "Ferraodev", sessionToken };
       }),
     logout: publicProcedure.mutation(({ ctx }) => {
       if (ctx.user) {
