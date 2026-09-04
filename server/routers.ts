@@ -16,7 +16,7 @@ import {
   toggleHistoryFavorite,
   updateProductLicense,
 } from "./db";
-import { clearSessionCookie, getAdminAccessKey, setSessionCookie } from "./rbxis-auth";
+import { clearSessionCookie, getAdminAccessKey, normalizeAdminKey, setSessionCookie } from "./rbxis-auth";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { publicProcedure, rbxisAdminProcedure, rbxisProcedure, router } from "./_core/trpc";
 
@@ -85,7 +85,7 @@ export const appRouter = router({
     adminLogin: publicProcedure
       .input(z.object({ adminKey: z.string().min(1) }))
       .mutation(({ ctx, input }) => {
-        if (input.adminKey !== getAdminAccessKey()) throw new TRPCError({ code: "UNAUTHORIZED", message: "Chave de administrador inválida" });
+        if (normalizeAdminKey(input.adminKey) !== normalizeAdminKey(getAdminAccessKey())) throw new TRPCError({ code: "UNAUTHORIZED", message: "Chave de administrador inválida" });
         setSessionCookie(ctx.req, ctx.res, { role: "admin", username: "Ferraodev" });
         return { success: true as const, username: "Ferraodev" };
       }),

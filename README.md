@@ -28,6 +28,8 @@ RBXIS_SESSION_SECRET=um-segredo-longo-e-aleatorio
 
 `RBXIS_ADMIN_KEY` mantém o acesso solicitado pelo proprietário. Recomenda-se substituir por uma chave privada antes de distribuir o painel. Se `RBXIS_SESSION_SECRET` não for definido, o app usa `JWT_SECRET` apenas como compatibilidade com o scaffold.
 
+Para evitar bloqueio no primeiro deploy, o app possui um fallback temporário de sessão. Em produção, configure `RBXIS_SESSION_SECRET` na Vercel antes de compartilhar o endereço público.
+
 ## Desenvolvimento
 
 ```bash

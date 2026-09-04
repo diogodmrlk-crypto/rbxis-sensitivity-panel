@@ -6,9 +6,10 @@ import type { RbxisRole, RbxisSession } from "../shared/rbxis";
 
 export const RBXIS_COOKIE_NAME = "rbxis_session";
 const SESSION_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 30;
+const FALLBACK_SESSION_SECRET = "rbxis-session-secret-change-this-in-vercel";
 
 function sessionSecret() {
-  return process.env.RBXIS_SESSION_SECRET || ENV.cookieSecret || (ENV.isProduction ? "" : "rbxis-development-secret-change-me");
+  return process.env.RBXIS_SESSION_SECRET || ENV.cookieSecret || FALLBACK_SESSION_SECRET;
 }
 
 function encode(value: string) {
@@ -86,6 +87,10 @@ export function clearSessionCookie(req: Request, res: Response) {
 
 export function getAdminAccessKey() {
   return process.env.RBXIS_ADMIN_KEY || "Ferraodev";
+}
+
+export function normalizeAdminKey(value: string) {
+  return value.trim().replace(/^["'“”‘’]+|["'“”‘’]+$/g, "");
 }
 
 export function roleLabel(role: RbxisRole) {
