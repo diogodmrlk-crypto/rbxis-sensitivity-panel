@@ -5,15 +5,16 @@ Aplicação web em **TypeScript + React + tRPC + Drizzle + MySQL/TiDB** para ger
 ## O que foi implementado
 
 - Login de usuário por **nome + chave aleatória**.
-- Chave administrativa inicial: **`Ferraodev`**. Ela abre uma área separada, invisível ao fluxo normal do usuário, com gestão de acessos.
+- Login administrativo fixo: **`SENSIADMIN00`**. Ele abre uma área separada, invisível ao fluxo normal do usuário, com gestão de acessos.
 - Criação de licenças com plano, duração em dias/semanas/meses/anos e chave gerada automaticamente.
-- Ações administrativas para alterar plano, bloquear usuário, revogar chave e resetar vínculo de dispositivo.
+- Ações administrativas para alterar plano, bloquear usuário, revogar, excluir da MockAPI e resetar vínculo de dispositivo.
+- Keys geradas com o padrão **`SENSI-tipo-aleatório`**, persistidas na coleção externa MockAPI e com expiração automática server-side.
 - Vínculo server-side por HWID lógico persistido: após o primeiro login, a licença não aceita outro identificador de dispositivo.
 - Gerador determinístico por sistema operacional, aparelho e performance, com cópia dos valores.
 - Histórico e favoritos persistidos no banco.
 - Aviso central de instalação que desaparece após 4 segundos e usa o prompt nativo `beforeinstallprompt` quando disponível.
 - Manifesto e service worker PWA.
-- Entry point serverless explícito em `api/index.ts` e `vercel.json` para subir frontend e tRPC na Vercel.
+- Entry point serverless explícito em `api/trpc.ts` e `vercel.json` para subir frontend e tRPC na Vercel.
 - O fluxo do produto não usa a API do Manus; as chamadas são internas em `/api/trpc`.
 - O redeploy automático acontece pela integração GitHub da Vercel: cada push na branch `main` gera um novo deployment.
 
@@ -23,11 +24,11 @@ Configure na Vercel:
 
 ```env
 DATABASE_URL=...
-RBXIS_ADMIN_KEY=Ferraodev
+MOCKAPI_KEYS_URL=https://seu-endpoint-mockapi/keys
 RBXIS_SESSION_SECRET=um-segredo-longo-e-aleatorio
 ```
 
-`RBXIS_ADMIN_KEY` mantém o acesso solicitado pelo proprietário. Recomenda-se substituir por uma chave privada antes de distribuir o painel. Se `RBXIS_SESSION_SECRET` não for definido, o app usa `JWT_SECRET` apenas como compatibilidade com o scaffold.
+`MOCKAPI_KEYS_URL` é server-side e não aparece no bundle do frontend. O login fixo `SENSIADMIN00` está no código conforme solicitado. Se `RBXIS_SESSION_SECRET` não for definido, o app usa `JWT_SECRET` apenas como compatibilidade com o scaffold.
 
 Para evitar bloqueio no primeiro deploy, o app possui um fallback temporário de sessão. Em produção, configure `RBXIS_SESSION_SECRET` na Vercel antes de compartilhar o endereço público.
 
@@ -53,7 +54,7 @@ Após cada push, confira o deployment associado ao commit na Vercel. O endpoint 
 
 ## Fluxo de uso
 
-1. Entre no **Acesso administrativo** usando `Ferraodev`.
+1. Entre no **Acesso administrativo** usando `SENSIADMIN00`.
 2. Abra **Licenças & usuários** e clique em **Criar novo acesso**.
 3. Defina o nome, plano e duração. Copie a chave exibida no banner seguro.
 4. Compartilhe com o usuário o nome e a chave. No primeiro login, o dispositivo fica vinculado.

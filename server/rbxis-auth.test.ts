@@ -22,8 +22,8 @@ describe("RBXIS session auth", () => {
     expect(readSessionToken(undefined)).toBeNull();
   });
 
-  it("keeps the requested admin access key as the local default", () => {
-    expect(getAdminAccessKey()).toBe("Ferraodev");
+  it("keeps the fixed SENSI admin access key", () => {
+    expect(getAdminAccessKey()).toBe("SENSIADMIN00");
   });
 
   it("accepts the signed session through an Authorization bearer header", () => {

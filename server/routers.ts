@@ -11,6 +11,7 @@ import {
   getProductLicense,
   listHistoryForUser,
   listProductLicenses,
+  deleteProductLicense,
   markLicenseLoggedIn,
   toggleHistoryFavorite,
   updateProductLicense,
@@ -51,7 +52,7 @@ export const appRouter = router({
     me: publicProcedure.query(async ({ ctx }) => {
       const session = ctx.rbxisSession;
       if (!session) return null;
-      if (session.role === "admin") return { role: "admin" as const, username: "Ferraodev", name: "Ferraodev", email: null };
+      if (session.role === "admin") return { role: "admin" as const, username: "SENSIADMIN00", name: "SENSIADMIN00", email: null };
       if (!session.userId || !session.licenseId) return null;
       const row = await getActiveLicenseSession(session.userId, session.licenseId);
       if (!row) return null;
@@ -84,8 +85,8 @@ export const appRouter = router({
       .input(z.object({ adminKey: z.string().min(1) }))
       .mutation(({ ctx, input }) => {
         if (normalizeAdminKey(input.adminKey) !== normalizeAdminKey(getAdminAccessKey())) throw new TRPCError({ code: "UNAUTHORIZED", message: "Chave de administrador inválida" });
-        const sessionToken = setSessionCookie(ctx.req, ctx.res, { role: "admin", username: "Ferraodev" });
-        return { success: true as const, username: "Ferraodev", sessionToken };
+        const sessionToken = setSessionCookie(ctx.req, ctx.res, { role: "admin", username: "SENSIADMIN00" });
+        return { success: true as const, username: "SENSIADMIN00", sessionToken };
       }),
     logout: publicProcedure.mutation(({ ctx }) => {
       clearSessionCookie(ctx.req, ctx.res);
@@ -140,6 +141,7 @@ export const appRouter = router({
     revokeLicense: rbxisAdminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => updateProductLicense(input.id, { status: "revoked" })),
     blockLicense: rbxisAdminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => updateProductLicense(input.id, { status: "blocked" })),
     resetDevice: rbxisAdminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => updateProductLicense(input.id, { deviceId: null, lastLoginAt: null })),
+    deleteLicense: rbxisAdminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => deleteProductLicense(input.id)),
     extendLicense: rbxisAdminProcedure.input(z.object({ id: z.number().int().positive(), durationValue: z.number().int().min(1).max(3650), durationUnit: durationUnitSchema })).mutation(async ({ input }) => {
       const license = await getProductLicense(input.id);
       if (!license) throw new TRPCError({ code: "NOT_FOUND", message: "Licença não encontrada" });

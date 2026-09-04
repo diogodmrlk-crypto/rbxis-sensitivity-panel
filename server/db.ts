@@ -11,6 +11,7 @@ import {
   users,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
+import { createMockKey, deleteMockKey, findMockKey, getMockKey, listMockKeys, mockKeyToLicense, updateMockKey } from "./mockapi";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -55,10 +56,6 @@ export async function getUserByOpenId(openId: string) {
   return result[0];
 }
 
-function makeAccessKey() {
-  return `rbxis-${nanoid(24)}`;
-}
-
 export async function createProductLicense(input: {
   username: string;
   planId: string;
@@ -66,87 +63,59 @@ export async function createProductLicense(input: {
   durationUnit: "days" | "weeks" | "months" | "years";
   expiresAt: Date;
 }) {
-  const db = await getDb();
-  if (!db) throw new Error("Banco de dados indisponível");
-  const duplicateUsername = await db.select({ id: productLicenses.id }).from(productLicenses).where(eq(productLicenses.username, input.username)).limit(1);
-  if (duplicateUsername[0]) throw new Error("DUPLICATE_USERNAME");
-  const openId = `rbxis_${nanoid(28)}`;
-  await db.insert(users).values({ openId, name: input.username, loginMethod: "rbxis" });
-  const createdUser = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-  if (!createdUser[0]) throw new Error("Não foi possível criar o usuário");
-
-  let accessKey = makeAccessKey();
-  let existing = await db.select({ id: productLicenses.id }).from(productLicenses).where(eq(productLicenses.accessKey, accessKey)).limit(1);
-  while (existing[0]) {
-    accessKey = makeAccessKey();
-    existing = await db.select({ id: productLicenses.id }).from(productLicenses).where(eq(productLicenses.accessKey, accessKey)).limit(1);
-  }
-
-  const values: InsertProductLicense = {
-    userId: createdUser[0].id,
-    username: input.username,
-    accessKey,
-    planId: input.planId,
-    durationValue: input.durationValue,
-    durationUnit: input.durationUnit,
-    expiresAt: input.expiresAt,
-    status: "active",
-  };
-  await db.insert(productLicenses).values(values);
-  const created = await db.select().from(productLicenses).where(eq(productLicenses.accessKey, accessKey)).limit(1);
-  return created[0];
+  const created = await createMockKey(input);
+  return mockKeyToLicense(created);
 }
 
 export async function getLicenseByCredentials(username: string, accessKey: string) {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db
-    .select({ license: productLicenses, user: users })
-    .from(productLicenses)
-    .innerJoin(users, eq(productLicenses.userId, users.id))
-    .where(and(eq(productLicenses.username, username), eq(productLicenses.accessKey, accessKey)))
-    .limit(1);
-  return result[0];
+  const key = await findMockKey(username, accessKey);
+  if (!key) return undefined;
+  const license = mockKeyToLicense(key);
+  return { license, user: { id: license.userId } as any };
 }
 
 export async function getActiveLicenseSession(userId: number, licenseId: number) {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db
-    .select({ license: productLicenses, user: users })
-    .from(productLicenses)
-    .innerJoin(users, eq(productLicenses.userId, users.id))
-    .where(and(eq(productLicenses.id, licenseId), eq(productLicenses.userId, userId), eq(productLicenses.status, "active")))
-    .limit(1);
-  const row = result[0];
-  if (!row || row.license.expiresAt.getTime() <= Date.now()) return undefined;
-  return row;
+  const keys = await listMockKeys();
+  const key = keys.find(item => mockKeyToLicense(item).id === licenseId);
+  if (!key) return undefined;
+  const license = mockKeyToLicense(key);
+  if (license.status !== "active" || license.expiresAt.getTime() <= Date.now()) return undefined;
+  return { license, user: { id: license.userId } as any };
 }
 
 export async function markLicenseLoggedIn(id: number, deviceId: string) {
-  const db = await getDb();
-  if (!db) return;
-  await db.update(productLicenses).set({ deviceId, lastLoginAt: new Date() }).where(eq(productLicenses.id, id));
+  const keys = await listMockKeys();
+  const key = keys.find(item => mockKeyToLicense(item).id === id);
+  if (key?.id) await updateMockKey(key.id, { device: deviceId, used: true, activatedAt: key.activatedAt || Math.floor(Date.now() / 1000) });
 }
 
 export async function listProductLicenses() {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(productLicenses).orderBy(desc(productLicenses.createdAt));
+  return (await listMockKeys()).map(mockKeyToLicense).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 }
 
 export async function getProductLicense(id: number) {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(productLicenses).where(eq(productLicenses.id, id)).limit(1);
-  return result[0];
+  const key = (await listMockKeys()).find(item => mockKeyToLicense(item).id === id);
+  return key ? mockKeyToLicense(key) : undefined;
 }
 
 export async function updateProductLicense(id: number, values: Partial<Pick<ProductLicense, "status" | "planId" | "durationValue" | "durationUnit" | "expiresAt" | "deviceId" | "lastLoginAt">>) {
-  const db = await getDb();
-  if (!db) throw new Error("Banco de dados indisponível");
-  await db.update(productLicenses).set(values).where(eq(productLicenses.id, id));
-  return getProductLicense(id);
+  const key = (await listMockKeys()).find(item => mockKeyToLicense(item).id === id);
+  if (!key?.id) throw new Error("Licença não encontrada");
+  const patch: Record<string, unknown> = {};
+  if (values.status) patch.status = values.status;
+  if (values.deviceId !== undefined) patch.device = values.deviceId ?? "";
+  if (values.lastLoginAt) patch.activatedAt = Math.floor(new Date(values.lastLoginAt).getTime() / 1000);
+  if (values.expiresAt) patch.expiresAt = Math.floor(new Date(values.expiresAt).getTime() / 1000);
+  if (values.planId) patch.type = values.planId === "week" ? "weekly" : values.planId === "month" ? "monthly" : values.planId === "year" ? "yearly" : values.planId;
+  if (values.durationValue) patch.expire = values.durationValue;
+  const updated = await updateMockKey(key.id, patch);
+  return mockKeyToLicense(updated);
+}
+
+export async function deleteProductLicense(id: number) {
+  const key = (await listMockKeys()).find(item => mockKeyToLicense(item).id === id);
+  if (!key?.id) throw new Error("Licença não encontrada");
+  return deleteMockKey(key.id);
 }
 
 export async function listHistoryForUser(userId: number, favoritesOnly = false) {
@@ -176,11 +145,6 @@ export async function toggleHistoryFavorite(userId: number, historyId: number) {
 }
 
 export async function getAdminStats() {
-  const db = await getDb();
-  if (!db) return { total: 0, active: 0, revoked: 0, blocked: 0 };
-  const result = await db
-    .select({ total: sql<number>`count(*)`, active: sql<number>`sum(status = 'active')`, revoked: sql<number>`sum(status = 'revoked')`, blocked: sql<number>`sum(status = 'blocked')` })
-    .from(productLicenses);
-  const row = result[0] ?? { total: 0, active: 0, revoked: 0, blocked: 0 };
-  return { total: Number(row.total), active: Number(row.active), revoked: Number(row.revoked), blocked: Number(row.blocked) };
+  const licenses = await listProductLicenses();
+  return { total: licenses.length, active: licenses.filter(item => item.status === "active").length, revoked: licenses.filter(item => item.status === "revoked").length, blocked: licenses.filter(item => item.status === "blocked").length };
 }

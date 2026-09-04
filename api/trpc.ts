@@ -1,12 +1,12 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 const secret = () => process.env.RBXIS_SESSION_SECRET || "rbxis-session-secret-change-this-in-vercel";
-const adminKey = () => process.env.RBXIS_ADMIN_KEY || "Ferraodev";
+const adminKey = () => "SENSIADMIN00";
 const encode = (value: string) => Buffer.from(value).toString("base64url");
 const sign = (payload: string) => createHmac("sha256", secret()).update(payload).digest("base64url");
 
 function tokenForAdmin() {
-  const payload = encode(JSON.stringify({ role: "admin", username: "Ferraodev", expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 30 }));
+  const payload = encode(JSON.stringify({ role: "admin", username: "SENSIADMIN00", expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 30 }));
   return `${payload}.${sign(payload)}`;
 }
 
@@ -46,7 +46,7 @@ export default async function trpc(req: any, res: any) {
       if (String(data?.adminKey ?? "").trim() !== String(adminKey()).trim()) return respond(res, 401, { error: { json: { message: "Chave administrativa inválida" } } });
       const sessionToken = tokenForAdmin();
       res.setHeader("Set-Cookie", `rbxis_session=${sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`);
-      return respond(res, 200, { result: { data: { json: { success: true, username: "Ferraodev", sessionToken } } } });
+      return respond(res, 200, { result: { data: { json: { success: true, username: "SENSIADMIN00", sessionToken } } } });
     }
     if (path === "auth.me") {
       return respond(res, 200, { result: { data: { json: readAdminSession(req) } } });
