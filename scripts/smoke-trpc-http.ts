@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import handler from "../api/trpc/[...path]";
+import handler from "../api/trpc";
 
 const server = createServer((req, res) => handler(req, res));
 server.listen(0, "127.0.0.1", async () => {

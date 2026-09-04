@@ -3,11 +3,10 @@
   "buildCommand": "pnpm build",
   "outputDirectory": "dist/public",
   "functions": {
-    "api/health.ts": {
-      "maxDuration": 10
-    },
-    "api/trpc/[...path].ts": {
-      "maxDuration": 30
-    }
-  }
+    "api/health.ts": { "maxDuration": 10 },
+    "api/trpc.ts": { "maxDuration": 30 }
+  },
+  "rewrites": [
+    { "source": "/api/trpc/:path*", "destination": "/api/trpc?path=:path*" }
+  ]
 }
