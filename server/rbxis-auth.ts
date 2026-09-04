@@ -64,7 +64,7 @@ export function readSessionToken(token: string | undefined): RbxisSession | null
   }
 }
 
-export function readSessionFromRequest(req: RequestLike) {
+export function readSessionFromRequest(req: any) {
   const authorization = req.headers.authorization;
   if (typeof authorization === "string" && authorization.startsWith("Bearer ")) {
     const bearerSession = readSessionToken(authorization.slice("Bearer ".length).trim());
@@ -82,7 +82,7 @@ function isSecureRequest(req: RequestLike) {
   return typeof forwarded === "string" && forwarded.split(",")[0]?.trim() === "https";
 }
 
-export function setSessionCookie(req: RequestLike, res: ResponseLike, session: Omit<RbxisSession, "expiresAt">) {
+export function setSessionCookie(req: any, res: any, session: Omit<RbxisSession, "expiresAt">) {
   const token = createSessionToken(session);
   res.setHeader("Set-Cookie", serialize(RBXIS_COOKIE_NAME, token, {
     httpOnly: true,
@@ -94,7 +94,7 @@ export function setSessionCookie(req: RequestLike, res: ResponseLike, session: O
   return token;
 }
 
-export function clearSessionCookie(req: RequestLike, res: ResponseLike) {
+export function clearSessionCookie(req: any, res: any) {
   res.clearCookie(RBXIS_COOKIE_NAME, {
     httpOnly: true,
     sameSite: "lax",
