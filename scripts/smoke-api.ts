@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import handler from "../api/index";
+import handler from "../api/health";
 
 const server = createServer((req, res) => handler(req, res));
 server.listen(0, "127.0.0.1", async () => {
