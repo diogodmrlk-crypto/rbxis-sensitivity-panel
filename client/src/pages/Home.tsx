@@ -89,7 +89,7 @@ function AppLogo({ compact = false }: { compact?: boolean }) {
   return (
     <div className={`brand-mark ${compact ? "brand-mark-compact" : ""}`}>
       <div className="brand-icon"><Crosshair size={compact ? 17 : 20} strokeWidth={2.6} /></div>
-      {!compact && <div><span className="brand-name">PURPOU</span><span className="brand-caption">TRICK</span></div>}
+      {!compact && <div><span className="brand-name">RBXIS</span><span className="brand-caption">SENSITIVITY LAB</span></div>}
     </div>
   );
 }
@@ -126,31 +126,7 @@ function LoginScreen() {
       <section className="login-content">
         <div className="login-copy">
           <span className="eyebrow"><span className="eyebrow-dot" /> ACESSO EXCLUSIVO</span>
-          <h1>PURPOU<br /><em>TRICK<!doctype html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#08090b" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="RBXIS" />
-    <meta name="description" content="PURPOU TRICKK AUXILIO" />
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/icon.svg" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23d92737'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='white' stroke-width='4'/%3E%3Cpath d='M32 8v13M32 43v13M8 32h13M43 32h13' stroke='white' stroke-width='4'/%3E%3Ccircle cx='32' cy='32' r='4' fill='white'/%3E%3C/svg%3E" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <title>PURPOU·TRICKKK</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
-</em></h1>
+          <h1>PURPOU<br /><em>melhor game.</em></h1>
           <p>Entre no nosso discord para conseguir sua chave de licensa</p>
           <div className="login-stats"><div><b>01</b><span>ANDROID<br />E IOS</span></div><div><b>∞</b><span>MELHOR<br />AUXILIO</span></div></div>
         </div>
