@@ -89,7 +89,7 @@ function AppLogo({ compact = false }: { compact?: boolean }) {
   return (
     <div className={`brand-mark ${compact ? "brand-mark-compact" : ""}`}>
       <div className="brand-icon"><Crosshair size={compact ? 17 : 20} strokeWidth={2.6} /></div>
-      {!compact && <div><span className="brand-name">RBXIS</span><span className="brand-caption">SENSITIVITY LAB</span></div>}
+      {!compact && <div><span className="brand-name">PURPOU</span><span className="brand-caption">TRICK</span></div>}
     </div>
   );
 }
@@ -126,17 +126,41 @@ function LoginScreen() {
       <section className="login-content">
         <div className="login-copy">
           <span className="eyebrow"><span className="eyebrow-dot" /> ACESSO EXCLUSIVO</span>
-          <h1>Domine o seu<br /><em>melhor game.</em></h1>
-          <p>Gere sensibilidades calibradas para o seu aparelho e jogue com uma precisão que acompanha o seu ritmo.</p>
-          <div className="login-stats"><div><b>01</b><span>DISPOSITIVO<br />VINCULADO</span></div><div><b>∞</b><span>AJUSTES<br />PERSONALIZADOS</span></div></div>
+          <h1>PURPOU<br /><em>TRICK<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#08090b" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="RBXIS" />
+    <meta name="description" content="PURPOU TRICKK AUXILIO" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23d92737'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='white' stroke-width='4'/%3E%3Cpath d='M32 8v13M32 43v13M8 32h13M43 32h13' stroke='white' stroke-width='4'/%3E%3Ccircle cx='32' cy='32' r='4' fill='white'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <title>PURPOU·TRICKKK</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+</em></h1>
+          <p>Entre no nosso discord para conseguir sua chave de licensa</p>
+          <div className="login-stats"><div><b>01</b><span>ANDROID<br />E IOS</span></div><div><b>∞</b><span>MELHOR<br />AUXILIO</span></div></div>
         </div>
         <div className="login-card-wrap">
-          <div className="login-card-topline"><span className="red-line" /><span>RBXIS / {adminMode ? "ADMIN" : "LICENSE"}</span><span className="online-dot" /></div>
+          <div className="login-card-topline"><span className="red-line" /><span>PURPOU / {adminMode ? "PRIVATE" : "LICENSE"}</span><span className="online-dot" /></div>
           <div className="login-card">
-            <div className="login-card-heading"><div className="card-icon"><LockKeyhole size={21} /></div><div><span className="mini-label">{adminMode ? "ÁREA RESTRITA" : "ACESSO PROTEGIDO"}</span><h2>{adminMode ? "Painel administrativo" : "Ative sua licença"}</h2></div></div>
-            <p className="card-description">{adminMode ? "Acesso total ao gerenciamento de usuários e chaves." : "Insira seus dados para desbloquear o gerador."}</p>
+            <div className="login-card-heading"><div className="card-icon"><LockKeyhole size={21} /></div><div><span className="mini-label">{adminMode ? "PRIVATE" : "ACESSO PROTEGIDO"}</span><h2>{adminMode ? "Painel administrativo" : "Ative sua licença"}</h2></div></div>
+            <p className="card-description">{adminMode ? "PRIVATEEE" : "PRIVATEEE"}</p>
             <form onSubmit={submit} className="login-form">
-              <label><span>{adminMode ? "Chave de administrador" : "Chave de acesso"}</span><div className="input-shell"><KeyRound size={17} /><input value={accessKey} onChange={event => setAccessKey(event.target.value)} placeholder={adminMode ? "SENSIADMIN00" : "SENSI-weekly-XXXXXXXXXX"} type="password" autoComplete="current-password" autoCapitalize="none" autoCorrect="off" spellCheck={false} required /><button type="button" className="input-action" onClick={() => setAccessKey("")} aria-label="Limpar chave"><X size={15} /></button></div></label>
+              <label><span>{adminMode ? "Chave de administrador" : "Chave de acesso"}</span><div className="input-shell"><KeyRound size={17} /><input value={accessKey} onChange={event => setAccessKey(event.target.value)} placeholder={adminMode ? "XXXXXXXXXX" : "SENSI-weekly-XXXXXXXXXX"} type="password" autoComplete="current-password" autoCapitalize="none" autoCorrect="off" spellCheck={false} required /><button type="button" className="input-action" onClick={() => setAccessKey("")} aria-label="Limpar chave"><X size={15} /></button></div></label>
               <button className="primary-button login-button" disabled={pending}>{pending ? <><RefreshCw size={17} className="spin" /> VALIDANDO...</> : <>{adminMode ? "ENTRAR NO ADMIN" : "ENTRAR NO PAINEL"}<ChevronRight size={18} /></>}</button>
             </form>
             <button type="button" className="text-button admin-toggle" onClick={() => { setAdminMode(value => !value); setAccessKey(""); }}>{adminMode ? "Voltar para acesso de usuário" : "Acesso administrativo"}<ChevronRight size={14} /></button>
@@ -144,7 +168,7 @@ function LoginScreen() {
           </div>
         </div>
       </section>
-      <footer className="login-footer"><span>RBXIS LAB / 2026</span><span>Feito para quem joga sério.</span><span className="footer-red">●</span></footer>
+      <footer className="login-footer"><span>Purpou Dev / 2026</span><span>Feito para quem joga sério.</span><span className="footer-red">●</span></footer>
       <InstallNotice />
     </main>
   );
@@ -160,7 +184,7 @@ function InstallNotice() {
     return () => { window.clearTimeout(timer); window.removeEventListener("beforeinstallprompt", capture); };
   }, []);
   if (!visible) return null;
-  return <div className="install-notice"><div className="notice-pulse"><MonitorSmartphone size={18} /></div><div><b>Coloque o RBXIS na tela inicial</b><span>Abra como um app no seu telefone.</span></div><button onClick={async () => { if (installEvent) { await installEvent.prompt(); setVisible(false); } else if (navigator.share) { await navigator.share({ title: "RBXIS Sensitivity Lab", text: "Abrir o RBXIS", url: window.location.href }); setVisible(false); } else toast.info("Toque no menu Compartilhar do navegador e escolha 'Adicionar à tela inicial'."); }} aria-label="Adicionar à tela inicial"><ChevronRight size={18} /></button><button className="notice-close" onClick={() => setVisible(false)} aria-label="Fechar aviso"><X size={15} /></button></div>;
+  return <div className="install-notice"><div className="notice-pulse"><MonitorSmartphone size={18} /></div><div><b>Coloque o Auxilio na tela inicial</b><span>Abra como um app no seu telefone.</span></div><button onClick={async () => { if (installEvent) { await installEvent.prompt(); setVisible(false); } else if (navigator.share) { await navigator.share({ title: "RBXIS Sensitivity Lab", text: "Abrir o RBXIS", url: window.location.href }); setVisible(false); } else toast.info("Toque no menu Compartilhar do navegador e escolha 'Adicionar à tela inicial'."); }} aria-label="Adicionar à tela inicial"><ChevronRight size={18} /></button><button className="notice-close" onClick={() => setVisible(false)} aria-label="Fechar aviso"><X size={15} /></button></div>;
 }
 
 function UserShell({ children, view, onChangeView, session, onLogout }: { children: React.ReactNode; view: View; onChangeView: (view: View) => void; session: { username: string; planId: string; expiresAt: Date | string; deviceId?: string | null }; onLogout: () => void }) {
