@@ -89,7 +89,7 @@ function AppLogo({ compact = false }: { compact?: boolean }) {
   return (
     <div className={`brand-mark ${compact ? "brand-mark-compact" : ""}`}>
       <div className="brand-icon"><Crosshair size={compact ? 17 : 20} strokeWidth={2.6} /></div>
-      {!compact && <div><span className="brand-name">RBXIS</span><span className="brand-caption">SENSITIVITY LAB</span></div>}
+      {!compact && <div><span className="brand-name">PURPOU</span><span className="brand-caption">SENSI</span></div>}
     </div>
   );
 }
