@@ -13,12 +13,14 @@ import {
   Crosshair,
   Crown,
   Gauge,
+  Grid3X3,
   Globe2,
   History,
   KeyRound,
   Laptop,
   LayoutDashboard,
   LockKeyhole,
+  SlidersHorizontal,
   LogOut,
   Menu,
   MonitorSmartphone,
@@ -61,7 +63,7 @@ const valueLabels: { key: keyof SensitivityValues; label: string; icon: string }
   { key: "awm", label: "AWM", icon: "⌁" },
 ];
 
-type View = "home" | "history" | "favorites" | "info" | "profile";
+type View = "home" | "history" | "favorites" | "auxilio" | "info" | "profile";
 type AdminView = "overview" | "licenses";
 
 function getDeviceId() {
@@ -166,6 +168,7 @@ function InstallNotice() {
 function UserShell({ children, view, onChangeView, session, onLogout }: { children: React.ReactNode; view: View; onChangeView: (view: View) => void; session: { username: string; planId: string; expiresAt: Date | string; deviceId?: string | null }; onLogout: () => void }) {
   const nav: { id: View; label: string; icon: React.ElementType }[] = [
     { id: "home", label: "Gerador", icon: LayoutDashboard },
+    { id: "auxilio", label: "Auxílio", icon: SlidersHorizontal },
     { id: "history", label: "Histórico", icon: History },
     { id: "favorites", label: "Favoritos", icon: Star },
     { id: "info", label: "Sobre", icon: CircleHelp },
@@ -195,6 +198,23 @@ function ResultCard({ values, historyId, isFavorited, onFavorite }: { values: Se
   return <section className="result-card"><div className="result-header"><div><span className="tag tag-green"><BadgeCheck size={13} /> RESULTADO PRONTO</span><h2>Sensibilidade gerada</h2><p>Configuração salva no seu histórico · ID #{String(historyId).padStart(4, "0")}</p></div><div className="result-actions"><button className="ghost-button" onClick={copyAll}><Copy size={16} /> Copiar tudo</button><button className={`favorite-button ${isFavorited ? "active" : ""}`} onClick={onFavorite} aria-label="Favoritar"><Star size={19} fill={isFavorited ? "currentColor" : "none"} /></button></div></div><div className="values-grid">{valueLabels.map(item => <div className="value-item" key={item.key}><span className="value-icon">{item.icon}</span><span><b>{item.label}</b><small>sensibilidade</small></span><strong>{values[item.key]}</strong><button onClick={async () => { await navigator.clipboard?.writeText(String(values[item.key])); toast.success(`${item.label} copiado`); }} aria-label={`Copiar ${item.label}`}><Clipboard size={14} /></button></div>)}</div></section>;
 }
 
+function AuxilioPage() {
+  const [tab, setTab] = useState<"aimbot" | "sensi" | "modules" | "injection">("aimbot");
+  const [toggles, setToggles] = useState({ legit: false, lag: false, recoil: false });
+  const [injecting, setInjecting] = useState<string | null>(null);
+  const [active, setActive] = useState<string | null>(null);
+  const [logs, setLogs] = useState<string[]>(["[SISTEMA] Auxílio carregado com segurança."]);
+  const toggle = (key: "legit" | "lag" | "recoil") => setToggles(value => ({ ...value, [key]: !value[key] }));
+  const inject = (mode: string) => {
+    setInjecting(mode); setActive(null); setLogs(value => [...value, `[INFO] Preparando ${mode}...`]);
+    window.setTimeout(() => { setInjecting(null); setActive(mode); setLogs(value => [...value, `[SUCESSO] ${mode} ativo e funcionando!`]); toast.success("Módulo ativado"); }, 1500);
+  };
+  const tabs = [{ id: "aimbot" as const, label: "AIMBOT", icon: Settings2 }, { id: "sensi" as const, label: "SENSI", icon: ShieldCheck }, { id: "modules" as const, label: "MÓDULOS", icon: Grid3X3 }, { id: "injection" as const, label: "INJEÇÃO", icon: Sparkles }];
+  return <div className="aux-page"><div className="aux-window"><aside className="aux-rail"><div className="aux-brand"><Crosshair size={19} /></div>{tabs.map(item => <button key={item.id} className={tab === item.id ? "active" : ""} onClick={() => setTab(item.id)} title={item.label}><item.icon size={18} /></button>)}<div className="aux-rail-line" /><span className="aux-status-dot" /></aside><section className="aux-content"><header className="aux-header"><div><span className="aux-kicker">RBXIS / AUXÍLIO VISUAL</span><h1>{tab === "aimbot" ? "AIMBOT" : tab === "sensi" ? "GERADOR DE SENSI" : tab === "modules" ? "MÓDULOS" : "INJEÇÃO"}</h1><p>{tab === "aimbot" ? "Configurações de mira e precisão" : tab === "sensi" ? "Gere a melhor sensibilidade para seu aparelho" : tab === "modules" ? "Ative recursos visuais do seu auxílio" : "Injeção de módulos no jogo"}</p></div><button className="aux-close" onClick={() => toast.info("Página Auxílio aberta no painel do usuário")}><X size={17} /></button></header>{tab === "aimbot" && <div className="aux-panel-list"><AuxToggle label="Legit" description="Mira suave e natural" value={toggles.legit} onClick={() => toggle("legit")} /><AuxToggle label="Retirar Input Lag" description="Resposta mais rápida aos comandos" value={toggles.lag} onClick={() => toggle("lag")} /><AuxToggle label="Diminuir Recuo" description="Controle visual aprimorado" value={toggles.recoil} onClick={() => toggle("recoil")} /></div>}{tab === "sensi" && <div className="aux-center-panel"><Crosshair size={38} /><h2>Selecione seu celular:</h2><p>Escolha o sistema para abrir o gerador principal.</p><div className="aux-choice-row"><button onClick={() => toast.info("Use o Gerador para configurar seu iOS")}>iOS</button><button className="selected" onClick={() => toast.info("Use o Gerador para configurar seu Android")}>Android</button></div></div>}{tab === "modules" && <div className="aux-module-grid"><AuxModule name="Precisão visual" icon={Crosshair} active={toggles.legit} onClick={() => toggle("legit")} /><AuxModule name="Resposta rápida" icon={Zap} active={toggles.lag} onClick={() => toggle("lag")} /><AuxModule name="Controle de mira" icon={Gauge} active={toggles.recoil} onClick={() => toggle("recoil")} /></div>}{tab === "injection" && <div className="aux-injection"><div className="aux-action-row"><button onClick={() => inject("FF NORMAL")} disabled={Boolean(injecting)}><Sparkles size={17} /> INJETAR FF NORMAL</button><button onClick={() => inject("FF MAX")} disabled={Boolean(injecting)}><Sparkles size={17} /> INJETAR NO FF MAX</button></div><div className={`aux-injection-state ${active ? "active" : ""}`}>{injecting ? <><RefreshCw className="spin" size={18} /> Injeção em andamento...</> : active ? <><span className="aux-green-dot" /> Injeção ativa e funcionando!</> : "Aguardando módulo"}</div><div className="aux-console">{logs.map((log, index) => <div key={`${log}-${index}`} className={log.includes("SUCESSO") ? "success" : ""}><span>[{new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}]</span> {log}</div>)}</div></div>}<footer className="aux-footer">Todos os direitos reservados <b>@chzioss</b></footer></section></div></div>;
+}
+function AuxToggle({ label, description, value, onClick }: { label: string; description: string; value: boolean; onClick: () => void }) { return <button className="aux-toggle-row" onClick={onClick}><span><b>{label}</b><small>{description}</small></span><i className={value ? "on" : ""}><em /></i></button>; }
+function AuxModule({ name, icon: Icon, active, onClick }: { name: string; icon: React.ElementType; active: boolean; onClick: () => void }) { return <button className={`aux-module ${active ? "active" : ""}`} onClick={onClick}><Icon size={24} /><span><b>{name}</b><small>{active ? "Ativado" : "Toque para ativar"}</small></span><i>{active ? <Check size={14} /> : <ChevronRight size={15} />}</i></button>; }
+
 function HistoryPage({ favoritesOnly = false }: { favoritesOnly?: boolean }) {
   const query = favoritesOnly ? trpc.generator.favorites.useQuery() : trpc.generator.history.useQuery();
   const favorite = trpc.generator.toggleFavorite.useMutation({ onSuccess: () => query.refetch() });
@@ -216,7 +236,7 @@ function ProfilePage({ session, onLogout }: { session: { username: string; planI
 function UserApp({ session, onLogout }: { session: { username: string; planId: string; expiresAt: Date | string; deviceId?: string | null }; onLogout: () => void }) {
   const [view, setView] = useState<View>("home");
   useEffect(() => { navigator.serviceWorker?.register("/sw.js").catch(() => undefined); }, []);
-  return <UserShell view={view} onChangeView={setView} session={session} onLogout={onLogout}>{view === "home" && <GeneratorPage session={session} />}{view === "history" && <HistoryPage />}{view === "favorites" && <HistoryPage favoritesOnly />}{view === "info" && <InfoPage />}{view === "profile" && <ProfilePage session={session} onLogout={onLogout} />}</UserShell>;
+  return <UserShell view={view} onChangeView={setView} session={session} onLogout={onLogout}>{view === "home" && <GeneratorPage session={session} />}{view === "auxilio" && <AuxilioPage />}{view === "history" && <HistoryPage />}{view === "favorites" && <HistoryPage favoritesOnly />}{view === "info" && <InfoPage />}{view === "profile" && <ProfilePage session={session} onLogout={onLogout} />}</UserShell>;
 }
 
 function AdminShell({ children, view, onChangeView, onLogout }: { children: React.ReactNode; view: AdminView; onChangeView: (view: AdminView) => void; onLogout: () => void }) {
