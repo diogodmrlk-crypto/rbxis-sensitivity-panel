@@ -29,6 +29,7 @@ import {
   RefreshCw,
   RotateCcw,
   Search,
+  Share2,
   Settings2,
   ShieldCheck,
   Smartphone,
@@ -155,6 +156,7 @@ function LoginScreen() {
 function InstallNotice() {
   const [visible, setVisible] = useState(true);
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
+  const [iosGuide, setIosGuide] = useState(false);
   useEffect(() => {
     const timer = window.setTimeout(() => setVisible(false), 4000);
     const capture = (event: Event) => { event.preventDefault(); setInstallEvent(event as BeforeInstallPromptEvent); };
@@ -162,7 +164,8 @@ function InstallNotice() {
     return () => { window.clearTimeout(timer); window.removeEventListener("beforeinstallprompt", capture); };
   }, []);
   if (!visible) return null;
-  return <div className="install-notice"><div className="notice-pulse"><MonitorSmartphone size={18} /></div><div><b>Coloque o Auxilio na tela inicial</b><span>Abra como um app no seu telefone.</span></div><button onClick={async () => { if (installEvent) { await installEvent.prompt(); setVisible(false); } else if (navigator.share) { await navigator.share({ title: "PURPOU SENSI", text: "Abrir o auxilio", url: window.location.href }); setVisible(false); } else toast.info("Toque no menu Compartilhar do navegador e escolha 'Adicionar à tela inicial'."); }} aria-label="Adicionar à tela inicial"><ChevronRight size={18} /></button><button className="notice-close" onClick={() => setVisible(false)} aria-label="Fechar aviso"><X size={15} /></button></div>;
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  return <>{<div className="install-notice"><div className="notice-pulse"><MonitorSmartphone size={18} /></div><div><b>Coloque o Auxilio na tela inicial</b><span>Abra como um app no seu telefone.</span></div><button onClick={async () => { if (installEvent) { await installEvent.prompt(); setVisible(false); } else if (isIos) setIosGuide(true); else if (navigator.share) { await navigator.share({ title: "PURPOU SENSI", text: "Abrir o auxilio", url: window.location.href }); setVisible(false); } else toast.info("Toque no menu Compartilhar do navegador e escolha 'Adicionar à tela inicial'."); }} aria-label="Adicionar à tela inicial"><ChevronRight size={18} /></button><button className="notice-close" onClick={() => setVisible(false)} aria-label="Fechar aviso"><X size={15} /></button></div>}{iosGuide && <div className="ios-install-guide" role="dialog" aria-modal="true"><div className="ios-guide-card"><div className="ios-guide-icon"><Share2 size={22} /></div><span className="eyebrow"><span className="eyebrow-dot" /> SAFARI / IPHONE</span><h2>Adicionar à Tela de Início</h2><p>Toque no ícone <b>Compartilhar</b> na barra inferior do Safari, como na imagem, e depois escolha <b>Adicionar à Tela de Início</b>.</p><div className="ios-share-hint"><Share2 size={25} /><span>Ícone Compartilhar</span><ChevronRight size={16} /><span>Adicionar à Tela de Início</span></div><button className="primary-button" onClick={() => setIosGuide(false)}>Entendi</button></div></div>}</>;
 }
 
 function UserShell({ children, view, onChangeView, session, onLogout }: { children: React.ReactNode; view: View; onChangeView: (view: View) => void; session: { username: string; planId: string; expiresAt: Date | string; deviceId?: string | null }; onLogout: () => void }) {
