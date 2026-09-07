@@ -126,7 +126,7 @@ function LoginScreen() {
       <section className="login-content">
         <div className="login-copy">
           <span className="eyebrow"><span className="eyebrow-dot" /> ACESSO EXCLUSIVO</span>
-          <h1>PURPOU<br /><em>melhor game.</em></h1>
+          <h1>PURPOU<br /><em>SENSI</em></h1>
           <p>Entre no nosso discord para conseguir sua chave de licensa</p>
           <div className="login-stats"><div><b>01</b><span>ANDROID<br />E IOS</span></div><div><b>∞</b><span>MELHOR<br />AUXILIO</span></div></div>
         </div>
@@ -160,7 +160,7 @@ function InstallNotice() {
     return () => { window.clearTimeout(timer); window.removeEventListener("beforeinstallprompt", capture); };
   }, []);
   if (!visible) return null;
-  return <div className="install-notice"><div className="notice-pulse"><MonitorSmartphone size={18} /></div><div><b>Coloque o Auxilio na tela inicial</b><span>Abra como um app no seu telefone.</span></div><button onClick={async () => { if (installEvent) { await installEvent.prompt(); setVisible(false); } else if (navigator.share) { await navigator.share({ title: "RBXIS Sensitivity Lab", text: "Abrir o RBXIS", url: window.location.href }); setVisible(false); } else toast.info("Toque no menu Compartilhar do navegador e escolha 'Adicionar à tela inicial'."); }} aria-label="Adicionar à tela inicial"><ChevronRight size={18} /></button><button className="notice-close" onClick={() => setVisible(false)} aria-label="Fechar aviso"><X size={15} /></button></div>;
+  return <div className="install-notice"><div className="notice-pulse"><MonitorSmartphone size={18} /></div><div><b>Coloque o Auxilio na tela inicial</b><span>Abra como um app no seu telefone.</span></div><button onClick={async () => { if (installEvent) { await installEvent.prompt(); setVisible(false); } else if (navigator.share) { await navigator.share({ title: "PURPOU SENSI", text: "Abrir o auxilio", url: window.location.href }); setVisible(false); } else toast.info("Toque no menu Compartilhar do navegador e escolha 'Adicionar à tela inicial'."); }} aria-label="Adicionar à tela inicial"><ChevronRight size={18} /></button><button className="notice-close" onClick={() => setVisible(false)} aria-label="Fechar aviso"><X size={15} /></button></div>;
 }
 
 function UserShell({ children, view, onChangeView, session, onLogout }: { children: React.ReactNode; view: View; onChangeView: (view: View) => void; session: { username: string; planId: string; expiresAt: Date | string; deviceId?: string | null }; onLogout: () => void }) {
