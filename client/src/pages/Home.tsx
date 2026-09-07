@@ -289,6 +289,7 @@ export default function Home() {
   const me = trpc.auth.me.useQuery(undefined, { retry: false });
   const logout = trpc.auth.logout.useMutation({ onSuccess: () => { localStorage.removeItem("rbxis_session_token"); me.refetch(); window.location.reload(); } });
   const session = me.data;
+  useEffect(() => { if (!me.isLoading && !session) localStorage.removeItem("rbxis_session_token"); }, [me.isLoading, session]);
   const handleLogout = () => logout.mutate();
   if (me.isLoading) return <LoadingScreen />;
   if (!session) return <LoginScreen />;

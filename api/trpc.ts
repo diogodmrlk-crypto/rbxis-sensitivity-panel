@@ -64,7 +64,7 @@ function numericId(value: MockKey) {
 }
 function asLicense(value: MockKey) {
   const key = normalize(value);
-  const expires = key.expiresAt ? new Date(key.expiresAt * 1000) : new Date(Date.now() + 86400000);
+  const expires = key.expiresAt ? new Date(key.expiresAt * 1000) : null;
   const durationUnit = key.type === "weekly" ? "weeks" : key.type === "monthly" ? "months" : key.type === "yearly" ? "years" : "days";
   return { id: numericId(key), userId: numericId({ ...key, key: `${key.key}:user` }), username: key.username ?? key.key, accessKey: key.key, planId: key.type ?? "custom", durationValue: key.expire ?? 0, durationUnit, expiresAt: expires, status: key.status ?? (key.expiresAt && key.expiresAt <= Math.floor(Date.now() / 1000) ? "revoked" : "active"), deviceId: key.device || null, lastLoginAt: key.activatedAt ? new Date(key.activatedAt * 1000) : null, createdAt: new Date((key.createdAt ?? 0) * 1000), updatedAt: new Date() };
 }
@@ -121,7 +121,8 @@ export default async function trpc(req: any, res: any) {
       if (key.used) return fail(res, 403, "Esta key já foi utilizada e não pode ser ativada novamente");
       if (key.device && key.device !== deviceId) return fail(res, 403, "Esta key já está vinculada a outro dispositivo");
       const now = Math.floor(Date.now() / 1000);
-      const updated = normalize(await mockRequest<MockKey>(`/${encodeURIComponent(key.id ?? key.key)}`, { method: "PUT", body: JSON.stringify({ device: deviceId, used: true, activatedAt: key.activatedAt || now, onlineAt: now }) }));
+      const activationExpiresAt = key.type === "perm" ? 0 : now + Math.max(1, Number(key.expire || 1)) * 86400;
+      const updated = normalize(await mockRequest<MockKey>(`/${encodeURIComponent(key.id ?? key.key)}`, { method: "PUT", body: JSON.stringify({ device: deviceId, used: true, activatedAt: key.activatedAt || now, expiresAt: key.expiresAt || activationExpiresAt, onlineAt: now }) }));
       const sessionToken = tokenForUser(updated);
       res.setHeader("Set-Cookie", `rbxis_session=${sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`);
       return ok(res, { success: true, username: updated.key, expiresAt: updated.expiresAt ? new Date(updated.expiresAt * 1000) : null, sessionToken });
@@ -165,7 +166,7 @@ export default async function trpc(req: any, res: any) {
       const days = durationDays(Number(data.durationValue), String(data.durationUnit)); const now = Math.floor(Date.now() / 1000);
       const type = data.planId === "weekly" ? "weekly" : data.planId === "perm" ? "perm" : "daily";
       const permanent = type === "perm";
-      const created = await mockRequest<MockKey>("", { method: "POST", body: JSON.stringify({ key: `SENSI-${type}-${randomBytes(6).toString("hex").toUpperCase()}`, used: false, device: "", expire: permanent ? 0 : type === "weekly" ? 7 : 1, type, createdAt: now, activatedAt: 0, expiresAt: permanent ? 0 : now + (type === "weekly" ? 7 : 1) * 86400, status: "active" }) });
+      const created = await mockRequest<MockKey>("", { method: "POST", body: JSON.stringify({ key: `SENSI-${type}-${randomBytes(6).toString("hex").toUpperCase()}`, used: false, device: "", expire: permanent ? 0 : type === "weekly" ? 7 : 1, type, createdAt: now, activatedAt: 0, expiresAt: 0, status: "active" }) });
       return ok(res, asLicense(created));
     }
     const id = Number(data.id); const current = match(id);
