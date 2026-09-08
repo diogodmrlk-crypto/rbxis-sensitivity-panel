@@ -76,10 +76,17 @@ function bodyInput(input: any) {
 }
 function durationDays(value: number, unit: string) { return unit === "days" ? value : unit === "weeks" ? value * 7 : unit === "months" ? value * 30 : value * 365; }
 function addDuration(start: Date, value: number, unit: string) { const d = new Date(start); if (unit === "days") d.setDate(d.getDate() + value); else if (unit === "weeks") d.setDate(d.getDate() + value * 7); else if (unit === "months") d.setMonth(d.getMonth() + value); else d.setFullYear(d.getFullYear() + value); return Math.floor(d.getTime() / 1000); }
-function buildSensitivity(seed: string) {
+function buildSensitivity(seed: string, device = "") {
   const digest = createHash("sha256").update(seed).digest();
   const n = (index: number) => digest[index] ?? 0;
-  return { general: 88 + (n(0) % 13), redDot: 82 + (n(1) % 17), scope2x: 76 + (n(2) % 20), scope4x: 68 + (n(3) % 24), awm: 54 + (n(4) % 30) };
+  const normalized = device.toLowerCase();
+  const isOther = normalized.includes("outros");
+  const isIos = normalized.includes("iphone") || normalized.includes("iph");
+  const isHighEnd = /s24|rog|poco x6|iphone 15|iphone 14|edge 40/.test(normalized);
+  const base = isOther ? (isIos ? 134 : 126) : isHighEnd ? 142 : isIos ? 132 : 118;
+  const spread = isOther ? 45 : 34;
+  const value = (index: number, offset: number) => Math.min(200, Math.max(1, base - offset + (n(index) % spread)));
+  return { general: value(0, 0), redDot: value(1, 7), scope2x: value(2, 15), scope4x: value(3, 25), awm: value(4, 37) };
 }
 function currentUserKey(session: any, raw: MockKey[]) { return raw.find((item) => item.key === session?.accessKey); }
 
@@ -148,7 +155,7 @@ export default async function trpc(req: any, res: any) {
         await mockRequest<MockKey>(`/${encodeURIComponent(userKey.id ?? userKey.key)}`, { method: "PUT", body: JSON.stringify({ history: next }) });
         return ok(res, { success: true });
       }
-      const values = buildSensitivity(`${userKey.key}:${data.operatingSystem}:${data.device}:${data.performance}`);
+      const values = buildSensitivity(`${userKey.key}:${data.operatingSystem}:${data.device}:${data.performance}`, String(data.device ?? ""));
       const record = { id: Date.now(), operatingSystem: data.operatingSystem, device: data.device, performance: data.performance, ...values, favorite: false, createdAt: new Date().toISOString() };
       await mockRequest<MockKey>(`/${encodeURIComponent(userKey.id ?? userKey.key)}`, { method: "PUT", body: JSON.stringify({ history: [record, ...history].slice(0, 100), onlineAt: Math.floor(Date.now() / 1000) }) });
       return ok(res, { values, historyId: record.id });
