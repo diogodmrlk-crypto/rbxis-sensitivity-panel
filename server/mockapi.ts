@@ -22,7 +22,6 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABA
 function headers(extra?: HeadersInit) {
   return { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "content-type": "application/json", ...(extra ?? {}) };
 }
-}
 
 async function request<T>(path = "", init?: RequestInit): Promise<T> {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/licenses${path}`, { ...init, headers: headers(init?.headers), cache: "no-store" });
