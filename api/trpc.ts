@@ -7,7 +7,8 @@ type MockKey = {
   history?: Array<Record<string, any>>; onlineAt?: number;
 };
 
-const MOCK_API = "https://69b9908ce69653ffe6a81689.mockapi.io/api/v1/keys";
+const SUPABASE_URL = "https://zrjfzxqkpjhsisbjvpbx.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpyjfzxqkpjhsisbjvpbxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NTI1ODksImV4cCI6MjA4OTMyODU4OX0.rUCxbhnvzMf9FAJsmyog2joHfYB-AekA1VnwvRF9Nbc";
 const ADMIN_KEY = "SENSIADMIN00";
 const secret = () => process.env.RBXIS_SESSION_SECRET || "rbxis-session-secret-change-this-in-vercel";
 const encode = (value: string) => Buffer.from(value).toString("base64url");
@@ -48,10 +49,16 @@ function readAdminSession(req: any) {
 }
 
 async function mockRequest<T>(path = "", init?: RequestInit): Promise<T> {
-  const response = await fetch(`${MOCK_API}${path}`, { ...init, headers: { "content-type": "application/json", ...(init?.headers ?? {}) }, cache: "no-store" });
-  if (!response.ok) throw new Error(`MockAPI respondeu ${response.status}`);
+  const method = init?.method === "PUT" ? "PATCH" : (init?.method ?? "GET");
+  const idPath = path.startsWith("/") ? `?id=eq.${encodeURIComponent(path.slice(1))}` : path || "?select=*&order=created_at.desc";
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/keys${idPath}`, { ...init, method, headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "content-type": "application/json", ...(method !== "GET" ? { Prefer: "return=representation" } : {}), ...(init?.headers ?? {}) }, cache: "no-store" });
+  if (!response.ok) {
+    const detail = await response.text().catch(() => "");
+    throw new Error(`Supabase respondeu ${response.status}${detail ? `: ${detail.slice(0, 160)}` : ""}`);
+  }
   if (response.status === 204) return undefined as T;
-  return response.json() as Promise<T>;
+  const value: any = await response.json();
+  return (Array.isArray(value) && method !== "GET" ? value[0] : value) as T;
 }
 
 function normalize(value: MockKey): MockKey {
