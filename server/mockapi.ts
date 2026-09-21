@@ -16,8 +16,8 @@ export type MockKey = {
   history?: Array<Record<string, any>>;
 };
 
-const SUPABASE_URL = (process.env.SUPABASE_URL || "https://zrjfzxqkpjhsisbjvpbx.supabase.co").replace(/\/$/, "");
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpyjfzxqkpjhsisbjvpbxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NTI1ODksImV4cCI6MjA4OTMyODU4OX0.rUCxbhnvzMf9FAJsmyog2joHfYB-AekA1VnwvRF9Nbc";
+const SUPABASE_URL = "https://zrjfzxqkpjhsisbjvpbx.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpyjfzxqkpjhsisbjvpbxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NTI1ODksImV4cCI6MjA4OTMyODU4OX0.rUCxbhnvzMf9FAJsmyog2joHfYB-AekA1VnwvRF9Nbc";
 
 function headers(extra?: HeadersInit) {
   return { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "content-type": "application/json", ...(extra ?? {}) };
