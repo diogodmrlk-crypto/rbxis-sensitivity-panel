@@ -24,7 +24,7 @@ function headers(extra?: HeadersInit) {
 }
 
 async function request<T>(path = "", init?: RequestInit): Promise<T> {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/licenses${path}`, { ...init, headers: headers(init?.headers), cache: "no-store" });
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/keys${path}`, { ...init, headers: headers(init?.headers), cache: "no-store" });
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
     throw new Error(`Supabase respondeu ${response.status}${detail ? `: ${detail.slice(0, 180)}` : ""}`);
@@ -35,8 +35,8 @@ async function request<T>(path = "", init?: RequestInit): Promise<T> {
 
 function fromRow(row: any): MockKey {
   return normalizeKey({
-    id: String(row.id), key: row.access_key, username: row.username ?? undefined,
-    used: row.used, device: row.device_id ?? "", expire: row.expire, type: row.plan_type,
+    id: String(row.id), key: row.key, username: row.username ?? undefined,
+    used: row.used, device: row.device ?? "", expire: row.expire, type: row.type,
     createdAt: row.created_at, activatedAt: row.activated_at, expiresAt: row.expires_at,
     status: row.status, onlineAt: row.online_at, history: Array.isArray(row.history) ? row.history : [],
   });
@@ -44,12 +44,12 @@ function fromRow(row: any): MockKey {
 
 function toRow(value: Partial<MockKey>) {
   const row: Record<string, unknown> = {};
-  if (value.key !== undefined) row.access_key = value.key;
+  if (value.key !== undefined) row.key = value.key;
   if (value.username !== undefined) row.username = value.username;
   if (value.used !== undefined) row.used = value.used;
-  if (value.device !== undefined) row.device_id = value.device;
+  if (value.device !== undefined) row.device = value.device;
   if (value.expire !== undefined) row.expire = value.expire;
-  if (value.type !== undefined) row.plan_type = value.type;
+  if (value.type !== undefined) row.type = value.type;
   if (value.createdAt !== undefined) row.created_at = value.createdAt;
   if (value.activatedAt !== undefined) row.activated_at = value.activatedAt;
   if (value.expiresAt !== undefined) row.expires_at = value.expiresAt;
