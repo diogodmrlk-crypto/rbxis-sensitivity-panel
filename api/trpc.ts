@@ -7,8 +7,7 @@ type MockKey = {
   history?: Array<Record<string, any>>; onlineAt?: number;
 };
 
-const SUPABASE_URL = "https://zrjfzxqkpjhsisbjvpbx.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpyamZ6eHFrcGpoc2lzYmp2cGJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NTI1ODksImV4cCI6MjA4OTMyODU4OX0.rUCxbhnvzMf9FAJsmyog2joHfYB-AekA1VnwvRF9Nbc";
+const MOCKAPI_KEYS_URL = "https://69b9908ce69653ffe6a81689.mockapi.io/api/v1/keys";
 const ADMIN_KEY = process.env.RBXIS_ADMIN_KEY?.trim() || "SENSIADMIN00";
 const secret = () => process.env.RBXIS_SESSION_SECRET || "rbxis-session-secret-change-this-in-vercel";
 const encode = (value: string) => Buffer.from(value).toString("base64url");
@@ -49,26 +48,19 @@ function readAdminSession(req: any) {
 }
 
 async function mockRequest<T>(path = "", init?: RequestInit): Promise<T> {
-  const method = init?.method === "PUT" ? "PATCH" : (init?.method ?? "GET");
-  const idPath = path.startsWith("/") ? `?id=eq.${encodeURIComponent(path.slice(1))}` : path || "?select=*&order=created_at.desc";
-  let body = init?.body;
-  if (typeof body === "string") {
-    const value = JSON.parse(body);
-    const row: Record<string, unknown> = {};
-    for (const [key, mapped] of Object.entries({ id: "id", key: "key", used: "used", device: "device", expire: "expire", type: "type", username: "username", createdAt: "created_at", activatedAt: "activated_at", expiresAt: "expires_at", status: "status", onlineAt: "online_at", history: "history" })) {
-      if (value[key] !== undefined) row[mapped] = value[key];
-    }
-    body = JSON.stringify(row);
-  }
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/keys${idPath}`, { ...init, method, body, headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "content-type": "application/json", ...(method !== "GET" ? { Prefer: "return=representation" } : {}), ...(init?.headers ?? {}) }, cache: "no-store" });
+  const method = init?.method ?? "GET";
+  const requestPath = path || (method === "GET" ? "?sortBy=createdAt&order=desc" : "");
+  const response = await fetch(`${MOCKAPI_KEYS_URL}${requestPath}`, {
+    ...init,
+    headers: { "content-type": "application/json", ...(init?.headers ?? {}) },
+    cache: "no-store",
+  });
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
-    throw new Error(`Supabase respondeu ${response.status}${detail ? `: ${detail.slice(0, 160)}` : ""}`);
+    throw new Error(`MockAPI respondeu ${response.status}${detail ? `: ${detail.slice(0, 160)}` : ""}`);
   }
   if (response.status === 204) return undefined as T;
-  const value: any = await response.json();
-  const mapRow = (row: any): MockKey => ({ id: String(row.id), key: row.key, username: row.username, used: row.used, device: row.device, expire: row.expire, type: row.type, createdAt: row.created_at, activatedAt: row.activated_at, expiresAt: row.expires_at, status: row.status, onlineAt: row.online_at, history: row.history });
-  return (Array.isArray(value) ? (method !== "GET" ? mapRow(value[0]) : value.map(mapRow)) : mapRow(value)) as T;
+  return response.json() as Promise<T>;
 }
 
 function normalize(value: MockKey): MockKey {
@@ -142,7 +134,6 @@ export default async function trpc(req: any, res: any) {
       if (key.status === "blocked") return fail(res, 403, "Esta key foi bloqueada pelo administrador");
       if (key.status === "revoked") return fail(res, 403, "Esta key foi revogada");
       if (key.expiresAt && key.expiresAt <= Math.floor(Date.now() / 1000)) return fail(res, 403, "Esta key expirou");
-      if (key.used) return fail(res, 403, "Esta key já foi utilizada e não pode ser ativada novamente");
       if (key.device && key.device !== deviceId) return fail(res, 403, "Esta key já está vinculada a outro dispositivo");
       const now = Math.floor(Date.now() / 1000);
       const activationExpiresAt = key.type === "perm" ? 0 : now + Math.max(1, Number(key.expire || 1)) * 86400;
