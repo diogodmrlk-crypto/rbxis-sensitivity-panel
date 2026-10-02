@@ -51,14 +51,24 @@ function readAdminSession(req: any) {
 async function mockRequest<T>(path = "", init?: RequestInit): Promise<T> {
   const method = init?.method === "PUT" ? "PATCH" : (init?.method ?? "GET");
   const idPath = path.startsWith("/") ? `?id=eq.${encodeURIComponent(path.slice(1))}` : path || "?select=*&order=created_at.desc";
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/keys${idPath}`, { ...init, method, headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "content-type": "application/json", ...(method !== "GET" ? { Prefer: "return=representation" } : {}), ...(init?.headers ?? {}) }, cache: "no-store" });
+  let body = init?.body;
+  if (typeof body === "string") {
+    const value = JSON.parse(body);
+    const row: Record<string, unknown> = {};
+    for (const [key, mapped] of Object.entries({ id: "id", key: "key", used: "used", device: "device", expire: "expire", type: "type", username: "username", createdAt: "created_at", activatedAt: "activated_at", expiresAt: "expires_at", status: "status", onlineAt: "online_at", history: "history" })) {
+      if (value[key] !== undefined) row[mapped] = value[key];
+    }
+    body = JSON.stringify(row);
+  }
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/keys${idPath}`, { ...init, method, body, headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "content-type": "application/json", ...(method !== "GET" ? { Prefer: "return=representation" } : {}), ...(init?.headers ?? {}) }, cache: "no-store" });
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
     throw new Error(`Supabase respondeu ${response.status}${detail ? `: ${detail.slice(0, 160)}` : ""}`);
   }
   if (response.status === 204) return undefined as T;
   const value: any = await response.json();
-  return (Array.isArray(value) && method !== "GET" ? value[0] : value) as T;
+  const mapRow = (row: any): MockKey => ({ id: String(row.id), key: row.key, username: row.username, used: row.used, device: row.device, expire: row.expire, type: row.type, createdAt: row.created_at, activatedAt: row.activated_at, expiresAt: row.expires_at, status: row.status, onlineAt: row.online_at, history: row.history });
+  return (Array.isArray(value) ? (method !== "GET" ? mapRow(value[0]) : value.map(mapRow)) : mapRow(value)) as T;
 }
 
 function normalize(value: MockKey): MockKey {
