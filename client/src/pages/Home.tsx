@@ -314,7 +314,8 @@ function AdminApp({ onLogout }: { onLogout: () => void }) {
 export default function Home() {
   const me = trpc.auth.me.useQuery(undefined, { retry: false });
   const logout = trpc.auth.logout.useMutation({ onSuccess: () => { localStorage.removeItem("rbxis_session_token_v3"); me.refetch(); window.location.reload(); } });
-  const session = me.data;
+  const rawSession = me.data;
+  const session = rawSession && rawSession.role && typeof rawSession.username === "string" && rawSession.username.trim() ? rawSession : null;
   useEffect(() => { if (!me.isLoading && !session) localStorage.removeItem("rbxis_session_token_v3"); }, [me.isLoading, session]);
   const handleLogout = () => logout.mutate();
   if (me.isLoading) return <LoadingScreen />;
