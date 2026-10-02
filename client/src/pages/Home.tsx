@@ -106,11 +106,11 @@ function LoginScreen() {
   const [accessKey, setAccessKey] = useState("");
   useEffect(() => { navigator.serviceWorker?.register("/sw.js").catch(() => undefined); }, []);
   const login = trpc.auth.login.useMutation({
-    onSuccess: data => { localStorage.setItem("rbxis_session_token_v3", data.sessionToken); window.location.reload(); },
+    onSuccess: data => { localStorage.setItem("rbxis_session_token_v3", data.sessionToken); localStorage.setItem("rbxis_admin_mode_v3", "1"); window.location.reload(); },
     onError: error => toast.error(error.message),
   });
   const adminLogin = trpc.auth.adminLogin.useMutation({
-    onSuccess: data => { localStorage.setItem("rbxis_session_token_v3", data.sessionToken); window.location.reload(); },
+    onSuccess: data => { localStorage.removeItem("rbxis_admin_mode_v3"); localStorage.setItem("rbxis_session_token_v3", data.sessionToken); window.location.reload(); },
     onError: error => toast.error(error.message),
   });
 
@@ -313,14 +313,15 @@ function AdminApp({ onLogout }: { onLogout: () => void }) {
 
 export default function Home() {
   const me = trpc.auth.me.useQuery(undefined, { retry: false });
-  const logout = trpc.auth.logout.useMutation({ onSuccess: () => { localStorage.removeItem("rbxis_session_token_v3"); me.refetch(); window.location.reload(); } });
+  const logout = trpc.auth.logout.useMutation({ onSuccess: () => { localStorage.removeItem("rbxis_session_token_v3"); localStorage.removeItem("rbxis_admin_mode_v3"); me.refetch(); window.location.reload(); } });
   const rawSession = me.data;
   const session = rawSession && rawSession.role && typeof rawSession.username === "string" && rawSession.username.trim() ? rawSession : null;
   useEffect(() => { if (!me.isLoading && !session) localStorage.removeItem("rbxis_session_token_v3"); }, [me.isLoading, session]);
   const handleLogout = () => logout.mutate();
+  const adminMode = localStorage.getItem("rbxis_admin_mode_v3") === "1" && Boolean(localStorage.getItem("rbxis_session_token_v3"));
   if (me.isLoading) return <LoadingScreen />;
+  if (adminMode || session?.role === "admin") return <AdminApp onLogout={handleLogout} />;
   if (!session) return <LoginScreen />;
-  if (session.role === "admin") return <AdminApp onLogout={handleLogout} />;
   return <UserApp session={session} onLogout={handleLogout} />;
 }
 
