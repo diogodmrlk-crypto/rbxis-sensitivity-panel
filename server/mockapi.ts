@@ -1,5 +1,3 @@
-import { randomBytes } from "node:crypto";
-
 export type MockKey = {
   id?: string;
   key: string;
@@ -17,14 +15,14 @@ export type MockKey = {
 };
 
 const SUPABASE_URL = "https://zrjfzxqkpjhsisbjvpbx.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpyjfzxqkpjhsisbjvpbxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NTI1ODksImV4cCI6MjA4OTMyODU4OX0.rUCxbhnvzMf9FAJsmyog2joHfYB-AekA1VnwvRF9Nbc";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpyamZ6eHFrcGpoc2lzYmp2cGJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NTI1ODksImV4cCI6MjA4OTMyODU4OX0.rUCxbhnvzMf9FAJsmyog2joHfYB-AekA1VnwvRF9Nbc";
 
-function headers(extra?: HeadersInit) {
+function requestHeaders(extra?: HeadersInit) {
   return { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "content-type": "application/json", ...(extra ?? {}) };
 }
 
-async function request<T>(path = "", init?: RequestInit): Promise<T> {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/keys${path}`, { ...init, headers: headers(init?.headers), cache: "no-store" });
+async function request<T>(query = "?select=*&order=created_at.desc", init?: RequestInit): Promise<T> {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/keys${query}`, { ...init, headers: requestHeaders(init?.headers), cache: "no-store" });
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
     throw new Error(`Supabase respondeu ${response.status}${detail ? `: ${detail.slice(0, 180)}` : ""}`);
@@ -34,16 +32,12 @@ async function request<T>(path = "", init?: RequestInit): Promise<T> {
 }
 
 function fromRow(row: any): MockKey {
-  return normalizeKey({
-    id: String(row.id), key: row.key, username: row.username ?? undefined,
-    used: row.used, device: row.device ?? "", expire: row.expire, type: row.type,
-    createdAt: row.created_at, activatedAt: row.activated_at, expiresAt: row.expires_at,
-    status: row.status, onlineAt: row.online_at, history: Array.isArray(row.history) ? row.history : [],
-  });
+  return normalizeKey({ id: String(row.id), key: row.key, username: row.username ?? undefined, used: row.used, device: row.device ?? "", expire: row.expire, type: row.type, createdAt: row.created_at, activatedAt: row.activated_at, expiresAt: row.expires_at, status: row.status, onlineAt: row.online_at, history: Array.isArray(row.history) ? row.history : [] });
 }
 
 function toRow(value: Partial<MockKey>) {
   const row: Record<string, unknown> = {};
+  if (value.id !== undefined) row.id = Number(value.id);
   if (value.key !== undefined) row.key = value.key;
   if (value.username !== undefined) row.username = value.username;
   if (value.used !== undefined) row.used = value.used;
@@ -60,7 +54,7 @@ function toRow(value: Partial<MockKey>) {
 }
 
 export async function listMockKeys() {
-  const rows = await request<any[]>("?select=*&order=created_at.desc");
+  const rows = await request<any[]>();
   return rows.map(fromRow);
 }
 
@@ -73,14 +67,15 @@ export async function getMockKey(id: string) {
 
 export async function findMockKey(username: string, accessKey: string) {
   const keys = await listMockKeys();
-  return keys.find(key => (key.username ?? key.key) === username && key.key === accessKey);
+  return keys.find(value => value.key === accessKey && (value.username ?? value.key) === username);
 }
 
 export async function createMockKey(input: { username: string; planId: string; durationValue: number; durationUnit: "days" | "weeks" | "months" | "years" }) {
   const now = Math.floor(Date.now() / 1000);
   const days = input.durationUnit === "days" ? input.durationValue : input.durationUnit === "weeks" ? input.durationValue * 7 : input.durationUnit === "months" ? input.durationValue * 30 : input.durationValue * 365;
-  const type = input.planId === "week" ? "weekly" : input.planId === "month" ? "monthly" : input.planId === "year" ? "yearly" : input.planId === "perm" ? "perm" : input.durationUnit;
-  const value: MockKey = { key: `SENSI-${type}-${randomBytes(6).toString("hex").toUpperCase()}`, username: input.username, used: false, device: "", expire: days, type, createdAt: now, activatedAt: 0, expiresAt: now + days * 86400, status: "active", onlineAt: 0, history: [] };
+  const type = input.planId === "week" ? "weekly" : input.planId === "month" ? "monthly" : input.planId === "year" ? "yearly" : input.planId === "perm" ? "perm" : input.planId;
+  const id = String(Date.now() * 1000 + Math.floor(Math.random() * 1000));
+  const value: MockKey = { id, key: `SENSI-${type}-${crypto.randomUUID().replaceAll("-", "").slice(0, 12).toUpperCase()}`, username: input.username, used: false, device: "", expire: days, type, createdAt: now, activatedAt: 0, expiresAt: type === "perm" ? 0 : now + days * 86400, status: "active", onlineAt: 0, history: [] };
   const rows = await request<any[]>("", { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify(toRow(value)) });
   return fromRow(rows[0]);
 }
