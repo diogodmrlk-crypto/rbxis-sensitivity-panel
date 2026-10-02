@@ -13,7 +13,7 @@ type ResponseLike = {
   clearCookie(name: string, options: Record<string, unknown>): void;
 };
 
-export const RBXIS_COOKIE_NAME = "rbxis_session_v2";
+export const RBXIS_COOKIE_NAME = "rbxis_session_v3";
 const SESSION_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 30;
 const FALLBACK_SESSION_SECRET = "rbxis-session-secret-change-this-in-vercel";
 

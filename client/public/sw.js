@@ -1,4 +1,4 @@
-const CACHE_NAME = "rbxis-shell-v3";
+const CACHE_NAME = "rbxis-shell-v4";
 const APP_SHELL = ["/", "/manifest.json"];
 
 self.addEventListener("install", event => {

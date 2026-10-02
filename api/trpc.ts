@@ -9,7 +9,7 @@ type MockKey = {
 
 const MOCKAPI_KEYS_URL = "https://69b9908ce69653ffe6a81689.mockapi.io/api/v1/keys";
 const ADMIN_KEY = process.env.RBXIS_ADMIN_KEY?.trim() || "SENSIADMIN00";
-const SESSION_COOKIE = "rbxis_session_v2";
+const SESSION_COOKIE = "rbxis_session_v3";
 const secret = () => process.env.RBXIS_SESSION_SECRET || "rbxis-session-secret-change-this-in-vercel";
 const encode = (value: string) => Buffer.from(value).toString("base64url");
 const sign = (payload: string) => createHmac("sha256", secret()).update(payload).digest("base64url");
@@ -122,7 +122,7 @@ export default async function trpc(req: any, res: any) {
     if (path === "auth.adminLogin") {
       if (String(data.adminKey ?? "").trim() !== ADMIN_KEY) return fail(res, 401, "Chave administrativa inválida");
       const sessionToken = tokenForAdmin();
-      res.setHeader("Set-Cookie", `rbxis_session_v2=${sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`);
+      res.setHeader("Set-Cookie", `rbxis_session_v3=${sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`);
       return ok(res, { success: true, username: ADMIN_KEY, sessionToken });
     }
     if (path === "auth.login") {
@@ -140,7 +140,7 @@ export default async function trpc(req: any, res: any) {
       const activationExpiresAt = key.type === "perm" ? 0 : now + Math.max(1, Number(key.expire || 1)) * 86400;
       const updated = normalize(await mockRequest<MockKey>(`/${encodeURIComponent(key.id ?? key.key)}`, { method: "PUT", body: JSON.stringify({ device: deviceId, used: true, activatedAt: key.activatedAt || now, expiresAt: key.expiresAt || activationExpiresAt, onlineAt: now }) }));
       const sessionToken = tokenForUser(updated);
-      res.setHeader("Set-Cookie", `rbxis_session_v2=${sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`);
+      res.setHeader("Set-Cookie", `rbxis_session_v3=${sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`);
       return ok(res, { success: true, username: updated.key, expiresAt: updated.expiresAt ? new Date(updated.expiresAt * 1000) : null, sessionToken });
     }
     if (path === "auth.me") {
@@ -151,7 +151,7 @@ export default async function trpc(req: any, res: any) {
       if (!key || key.status === "revoked" || key.status === "blocked" || (key.expiresAt && key.expiresAt <= Math.floor(Date.now() / 1000))) return ok(res, null);
       return ok(res, { role: "user", username: key.key, name: key.key, email: null, planId: key.type ?? "daily", expiresAt: key.expiresAt ? new Date(key.expiresAt * 1000) : new Date("2099-12-31T23:59:59Z"), deviceId: key.device || null });
     }
-    if (path === "auth.logout") { res.setHeader("Set-Cookie", "rbxis_session_v2=; Path=/; HttpOnly; Max-Age=0"); return ok(res, { success: true }); }
+    if (path === "auth.logout") { res.setHeader("Set-Cookie", "rbxis_session_v3=; Path=/; HttpOnly; Max-Age=0"); return ok(res, { success: true }); }
     if (path === "generator.generate" || path === "generator.history" || path === "generator.favorites" || path === "generator.toggleFavorite") {
       const session = readSession(req);
       if (!session || session.role !== "user") return fail(res, 403, "O gerador é exclusivo para usuários");
