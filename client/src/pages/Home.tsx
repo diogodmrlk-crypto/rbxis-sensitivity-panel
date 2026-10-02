@@ -106,11 +106,11 @@ function LoginScreen() {
   const [accessKey, setAccessKey] = useState("");
   useEffect(() => { navigator.serviceWorker?.register("/sw.js").catch(() => undefined); }, []);
   const login = trpc.auth.login.useMutation({
-    onSuccess: data => { localStorage.setItem("rbxis_session_token", data.sessionToken); window.location.reload(); },
+    onSuccess: data => { localStorage.setItem("rbxis_session_token_v2", data.sessionToken); window.location.reload(); },
     onError: error => toast.error(error.message),
   });
   const adminLogin = trpc.auth.adminLogin.useMutation({
-    onSuccess: data => { localStorage.setItem("rbxis_session_token", data.sessionToken); window.location.reload(); },
+    onSuccess: data => { localStorage.setItem("rbxis_session_token_v2", data.sessionToken); window.location.reload(); },
     onError: error => toast.error(error.message),
   });
 
@@ -229,7 +229,7 @@ function AuxilioPage() {
   const quickExitNow = () => {
     setQuickExit(true);
     window.setTimeout(() => {
-      localStorage.removeItem("rbxis_session_token");
+      localStorage.removeItem("rbxis_session_token_v2");
       sessionStorage.clear();
       try { window.open("", "_self"); window.close(); } catch { /* browsers block closing tabs not opened by script */ }
       window.setTimeout(() => { if (document.visibilityState === "visible") window.location.replace("about:blank"); }, 120);
@@ -313,9 +313,9 @@ function AdminApp({ onLogout }: { onLogout: () => void }) {
 
 export default function Home() {
   const me = trpc.auth.me.useQuery(undefined, { retry: false });
-  const logout = trpc.auth.logout.useMutation({ onSuccess: () => { localStorage.removeItem("rbxis_session_token"); me.refetch(); window.location.reload(); } });
+  const logout = trpc.auth.logout.useMutation({ onSuccess: () => { localStorage.removeItem("rbxis_session_token_v2"); me.refetch(); window.location.reload(); } });
   const session = me.data;
-  useEffect(() => { if (!me.isLoading && !session) localStorage.removeItem("rbxis_session_token"); }, [me.isLoading, session]);
+  useEffect(() => { if (!me.isLoading && !session) localStorage.removeItem("rbxis_session_token_v2"); }, [me.isLoading, session]);
   const handleLogout = () => logout.mutate();
   if (me.isLoading) return <LoadingScreen />;
   if (!session) return <LoginScreen />;

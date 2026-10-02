@@ -18,10 +18,10 @@ const trpcClient = trpc.createClient({
       transformer: jsonTransformer,
         headers() {
           try {
-          let token = localStorage.getItem("rbxis_session_token");
+          let token = localStorage.getItem("rbxis_session_token_v2");
           if (!token) {
-            token = sessionStorage.getItem("rbxis_session_token");
-            if (token) localStorage.setItem("rbxis_session_token", token);
+            token = sessionStorage.getItem("rbxis_session_token_v2");
+            if (token) localStorage.setItem("rbxis_session_token_v2", token);
           }
           if (token) return { Authorization: `Bearer ${token}` };
         } catch {

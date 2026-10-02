@@ -10,6 +10,8 @@ O projeto usa diretamente a coleção pública da MockAPI:
 
 Não é necessário configurar URL, token ou segredo de banco no frontend. As chamadas são feitas pelo backend (`server/mockapi.ts` no servidor Node e `api/trpc.ts` no deploy serverless).
 
+Para o painel administrativo no Vercel, configure a variável `RBXIS_ADMIN_KEY` com o valor `SENSIADMIN00`. Esse também é o valor padrão quando a variável não estiver definida.
+
 ### Formato esperado da key
 
 ```json
