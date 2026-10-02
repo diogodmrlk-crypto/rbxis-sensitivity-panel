@@ -1,4 +1,5 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import superjson from "superjson";
 
 type MockKey = {
   id?: string; key: string; username?: string; used?: boolean; device?: string; expire?: number;
@@ -107,7 +108,7 @@ function respond(res: any, status: number, value: unknown) {
   // an array response whenever ?batch=1 is present.
   res.end(JSON.stringify(res.__trpcBatch ? [value] : value));
 }
-function ok(res: any, value: unknown) { return respond(res, 200, { result: { data: { json: value } } }); }
+function ok(res: any, value: unknown) { return respond(res, 200, { result: { data: superjson.serialize(value) } }); }
 function fail(res: any, status: number, message: string) { return respond(res, status, { error: { json: { message } } }); }
 
 export default async function trpc(req: any, res: any) {
