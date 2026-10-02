@@ -104,7 +104,7 @@ export function clearSessionCookie(req: any, res: any) {
 }
 
 export function getAdminAccessKey() {
-  return "SENSIADMIN00";
+  return process.env.RBXIS_ADMIN_KEY?.trim() || "SENSIADMIN00";
 }
 
 export function normalizeAdminKey(value: string) {
