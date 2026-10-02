@@ -106,11 +106,11 @@ function LoginScreen() {
   const [accessKey, setAccessKey] = useState("");
   useEffect(() => { navigator.serviceWorker?.register("/sw.js").catch(() => undefined); }, []);
   const login = trpc.auth.login.useMutation({
-    onSuccess: data => { localStorage.setItem("rbxis_session_token_v3", data.sessionToken); localStorage.setItem("rbxis_admin_mode_v3", "1"); window.location.reload(); },
+    onSuccess: data => { localStorage.removeItem("rbxis_admin_mode_v3"); localStorage.setItem("rbxis_session_token_v3", data.sessionToken); window.location.reload(); },
     onError: error => toast.error(error.message),
   });
   const adminLogin = trpc.auth.adminLogin.useMutation({
-    onSuccess: data => { localStorage.removeItem("rbxis_admin_mode_v3"); localStorage.setItem("rbxis_session_token_v3", data.sessionToken); window.location.reload(); },
+    onSuccess: data => { localStorage.setItem("rbxis_admin_mode_v3", "1"); localStorage.setItem("rbxis_session_token_v3", data.sessionToken); window.location.reload(); },
     onError: error => toast.error(error.message),
   });
 
