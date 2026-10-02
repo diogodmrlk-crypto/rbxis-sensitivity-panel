@@ -2,17 +2,20 @@ import { trpc } from "@/lib/trpc";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpLink } from "@trpc/client";
 import { createRoot } from "react-dom/client";
-import superjson from "superjson";
 import App from "./App";
 import "./index.css";
 
 const queryClient = new QueryClient();
+const jsonTransformer = {
+  serialize: (value: unknown) => value,
+  deserialize: (value: unknown) => value,
+};
 
 const trpcClient = trpc.createClient({
   links: [
     httpLink({
       url: "/api/trpc",
-      transformer: superjson,
+      transformer: jsonTransformer,
         headers() {
           try {
           let token = localStorage.getItem("rbxis_session_token");
